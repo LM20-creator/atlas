@@ -393,6 +393,15 @@ button {
   outline-offset: 3px;
 }
 
+.atlas-city-florence,
+.atlas-city-istanbul {
+  z-index: 1;
+}
+
+.atlas-city.is-active {
+  z-index: 2;
+}
+
 .atlas-card {
   position: absolute;
   left: clamp(1rem, 2.5vw, 2rem);
@@ -1246,41 +1255,56 @@ button {
 
 @media (max-width: 880px) {
   .atlas-home {
-    padding: 5rem 0.75rem 0.75rem;
+    height: 100vh;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 0.65rem;
+    padding: calc(env(safe-area-inset-top, 0px) + 0.75rem) 0.75rem calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+    overflow: hidden;
+  }
+
+  @supports (height: 100dvh) {
+    .atlas-home {
+      height: 100dvh;
+    }
   }
 
   .atlas-copy {
     display: block;
-    margin-bottom: 0.85rem;
+    margin: 0;
     padding-right: 0;
   }
 
   .atlas-home-tools {
-    top: 0.75rem;
-    right: 0.75rem;
+    position: static;
+    justify-content: flex-end;
   }
 
   .atlas-home-logo {
-    width: 3.35rem;
+    width: clamp(2.7rem, 12vw, 3.35rem);
   }
 
   .badges-button {
-    min-height: 2.4rem;
+    min-height: 44px;
     padding: 0 0.7rem;
   }
 
   .atlas-copy h1 {
-    font-size: clamp(2rem, 10vw, 3rem);
+    font-size: clamp(1.85rem, 9vw, 2.8rem);
   }
 
   .atlas-intro {
-    margin: 0.55rem 0 0;
+    margin: 0.35rem 0 0;
     font-size: 0.82rem;
     text-align: left;
   }
 
   .atlas-stage {
-    min-height: calc(100vh - 9.5rem);
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    aspect-ratio: auto;
   }
 
   .atlas-caption {
@@ -1289,14 +1313,14 @@ button {
   }
 
   .atlas-card {
-    left: 0.75rem;
-    right: 0.75rem;
-    bottom: 0.75rem;
+    left: 0.65rem;
+    right: 0.65rem;
+    bottom: 0.65rem;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.65rem;
     width: auto;
-    min-height: 5.4rem;
-    padding: 0.75rem;
+    min-height: 0;
+    padding: 0.68rem;
   }
 
   .atlas-card-image {
@@ -1304,7 +1328,15 @@ button {
   }
 
   .atlas-card h2 {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
+  }
+
+  .atlas-card p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.74rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .atlas-city {
@@ -1318,7 +1350,8 @@ button {
   }
 
   .atlas-enter {
-    min-width: 2.65rem;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
   }
 
@@ -1377,8 +1410,9 @@ button {
   }
 
   .capsule-topbar {
-    inset: 0.75rem 0.75rem auto;
+    inset: calc(env(safe-area-inset-top, 0px) + 0.75rem) calc(env(safe-area-inset-right, 0px) + 0.75rem) auto calc(env(safe-area-inset-left, 0px) + 0.75rem);
     align-items: flex-start;
+    z-index: 8;
   }
 
   .capsule-brand {
@@ -1397,7 +1431,9 @@ button {
 
   .floating-button,
   .floating-action {
-    width: 2.35rem;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
   }
 
@@ -1408,12 +1444,14 @@ button {
   .capsule-heading {
     left: 1rem;
     right: 1rem;
-    bottom: 1.25rem;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
     max-width: none;
+    z-index: 3;
+    pointer-events: none;
   }
 
   .capsule-heading h1 {
-    font-size: clamp(2.6rem, 15vw, 4.25rem);
+    font-size: clamp(2.35rem, 13vw, 3.85rem);
   }
 
   .capsule-heading span {
@@ -1422,8 +1460,8 @@ button {
   }
 
   .map-marker {
-    width: 2.65rem;
-    height: 2.65rem;
+    width: 44px;
+    height: 44px;
   }
 
   .marker-label {
@@ -1435,19 +1473,145 @@ button {
   }
 
   .info-panel {
-    left: 0.75rem;
-    right: 0.75rem;
-    bottom: 0.75rem;
+    position: fixed;
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    bottom: 0;
     width: auto;
-    max-height: min(42vh, 20rem);
-    overflow: auto;
-    padding: 1rem 3rem 1rem 1rem;
-    border-radius: 8px;
+    max-height: 55vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 1rem 3rem calc(env(safe-area-inset-bottom, 0px) + 1rem) 1rem;
+    border-radius: 8px 8px 0 0;
+  }
+
+  @supports (max-height: 55dvh) {
+    .info-panel {
+      max-height: 55dvh;
+    }
   }
 
   .panel-image {
     aspect-ratio: 16 / 8.5;
     margin-bottom: 0.7rem;
+  }
+
+  .panel-close {
+    width: 44px;
+    height: 44px;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .city-map-close {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 880px) and (orientation: landscape) {
+  .atlas-home {
+    gap: 0.45rem;
+    padding: calc(env(safe-area-inset-top, 0px) + 0.55rem) 0.75rem calc(env(safe-area-inset-bottom, 0px) + 0.55rem);
+  }
+
+  .atlas-home-tools {
+    min-height: 44px;
+  }
+
+  .atlas-copy {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .atlas-copy h1 {
+    font-size: clamp(1.55rem, 6vw, 2.25rem);
+  }
+
+  .atlas-intro {
+    max-width: 16rem;
+    margin: 0;
+    text-align: right;
+  }
+
+  .atlas-stage {
+    min-height: 0;
+  }
+
+  .atlas-card {
+    min-height: 0;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .atlas-card-kicker {
+    margin-bottom: 0.12rem;
+  }
+
+  .atlas-card h2 {
+    margin-bottom: 0;
+    font-size: 1.05rem;
+  }
+
+  .atlas-card p {
+    display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .capsule-view,
+  .capsule-stage,
+  .atmosphere-wrap {
+    min-height: 100vh;
+    height: 100vh;
+  }
+
+  .atmosphere-image {
+    height: 100vh;
+  }
+
+  @supports (height: 100dvh) {
+    .capsule-view,
+    .capsule-stage,
+    .atmosphere-wrap {
+      min-height: 100dvh;
+      height: 100dvh;
+    }
+
+    .atmosphere-image {
+      height: 100dvh;
+    }
+  }
+}
+
+@media (max-width: 880px) and (orientation: landscape) {
+  .capsule-topbar {
+    inset: calc(env(safe-area-inset-top, 0px) + 0.55rem) calc(env(safe-area-inset-right, 0px) + 0.55rem) auto calc(env(safe-area-inset-left, 0px) + 0.55rem);
+  }
+
+  .capsule-heading {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.65rem);
+    max-width: 15rem;
+  }
+
+  .capsule-heading h1 {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+
+  .capsule-heading span {
+    display: none;
+  }
+
+  .info-panel {
+    max-height: 70vh;
+  }
+
+  @supports (max-height: 70dvh) {
+    .info-panel {
+      max-height: 70dvh;
+    }
   }
 }
 
