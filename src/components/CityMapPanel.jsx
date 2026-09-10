@@ -126,17 +126,32 @@ export default function CityMapPanel({ city, onClose }) {
   function cancelAdding() { draftMarkerRef.current?.remove(); draftMarkerRef.current = null; modeRef.current = "browse"; setMode("browse"); }
   async function submit(event) {
     event.preventDefault();
-    if (!draft.name.trim() || draft.lng === null) { setNotice("Ajoutez un nom, puis placez le marqueur sur la carte."); return; }
+    if (!draft.name.trim()) { setNotice("Ajoutez le nom du lieu."); return; }
     setIsSaving(true); setNotice("");
     try {
-      const response = await fetch("/api/places", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...draft, name: draft.name.trim(), address: draft.address.trim(), city: city.id }) });
+      let placeDraft = { ...draft, name: draft.name.trim(), address: draft.address.trim() };
+      if (placeDraft.lng === null) {
+        if (!placeDraft.address) throw new Error("missing-location");
+        const query = new URLSearchParams({ q: `${placeDraft.address}, Istanbul, Türkiye`, proximity: `${city.coordinates.lng},${city.coordinates.lat}`, limit: "1", language: "fr", access_token: token });
+        const geocodeResponse = await fetch(`https://api.mapbox.com/search/geocode/v6/forward?${query}`);
+        const geocode = await geocodeResponse.json();
+        const coordinates = geocode.features?.[0]?.geometry?.coordinates;
+        if (!geocodeResponse.ok || !Array.isArray(coordinates)) throw new Error("address-not-found");
+        placeDraft = { ...placeDraft, lng: coordinates[0], lat: coordinates[1] };
+        setDraft(placeDraft);
+      }
+      const response = await fetch("/api/places", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...placeDraft, city: city.id }) });
       if (!response.ok) throw new Error();
       const { place } = await response.json(); setPlaces((current) => [...current, place]); cancelAdding(); setNotice("Adresse ajoutée à la carte.");
-    } catch {
+    } catch (error) {
       if (import.meta.env.DEV) {
         setPlaces((current) => [...current, { id: `preview-${Date.now()}`, ...draft, name: draft.name.trim(), address: draft.address.trim() }]);
         cancelAdding();
         setNotice("Adresse ajoutée pour cet aperçu. Elle ne sera pas conservée après actualisation.");
+      } else if (error.message === "missing-location") {
+        setNotice("Saisissez une adresse ou placez le marqueur directement sur la carte.");
+      } else if (error.message === "address-not-found") {
+        setNotice("Adresse introuvable. Essayez une adresse plus complète ou placez le marqueur sur la carte.");
       } else {
         setNotice("Impossible d’ajouter l’adresse pour le moment. Réessayez dans un instant.");
       }
@@ -146,7 +161,7 @@ export default function CityMapPanel({ city, onClose }) {
   return <section className="city-map-panel" role="dialog" aria-modal="true" aria-label={`Plan de ${city.name}`}>
     <div className="city-map-canvas" ref={mapNode} />
     <header className="city-map-header"><div><span>Plan partagé</span><h2>{city.name}</h2></div><div className="city-map-toolbar">{mode === "browse" && <button className="map-add-button" type="button" onClick={startAdding}><MapPin size={17} /> Ajouter une adresse</button>}<button className="city-map-close" type="button" onClick={onClose} aria-label="Fermer le plan"><X size={19} /></button></div></header>
-    {mode === "adding" && <form className="place-form" onSubmit={submit}><div className="place-form-heading"><div><span>Nouvelle adresse</span><h3>Placez le repère</h3></div><button type="button" onClick={cancelAdding}>Annuler</button></div><p>Cliquez sur la carte pour déposer le marqueur, puis faites-le glisser si nécessaire.</p><label>Nom du lieu<input value={draft.name} onChange={(event) => setDraft((item) => ({ ...item, name: event.target.value }))} placeholder="Ex. Café du Bosphore" maxLength="90" required /></label><label>Adresse <span>facultatif</span><div className="place-input-icon"><Search size={16} /><input value={draft.address} onChange={(event) => setDraft((item) => ({ ...item, address: event.target.value }))} placeholder="Rue, quartier…" maxLength="160" /></div></label><label>Catégorie<select value={draft.category} onChange={(event) => setDraft((item) => ({ ...item, category: event.target.value }))}>{CATEGORIES.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select></label><button className="place-submit" type="submit" disabled={isSaving}>{isSaving ? "Ajout…" : "Ajouter à la carte"}</button></form>}
+    {mode === "adding" && <form className="place-form" onSubmit={submit}><div className="place-form-heading"><div><span>Nouvelle adresse</span><h3>Placez le repère</h3></div><button type="button" onClick={cancelAdding}>Annuler</button></div><p>Saisissez une adresse pour placer le repère automatiquement, ou cliquez sur la carte pour le déposer vous-même.</p><label>Nom du lieu<input value={draft.name} onChange={(event) => setDraft((item) => ({ ...item, name: event.target.value }))} placeholder="Ex. Café du Bosphore" maxLength="90" required /></label><label>Adresse <span>facultatif</span><div className="place-input-icon"><Search size={16} /><input value={draft.address} onChange={(event) => setDraft((item) => ({ ...item, address: event.target.value }))} placeholder="Rue, quartier…" maxLength="160" /></div></label><label>Catégorie<select value={draft.category} onChange={(event) => setDraft((item) => ({ ...item, category: event.target.value }))}>{CATEGORIES.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select></label><button className="place-submit" type="submit" disabled={isSaving}>{isSaving ? "Ajout…" : "Ajouter à la carte"}</button></form>}
     {!token && !mapError && <div className="city-map-message"><strong>Chargement du plan…</strong></div>}
     {notice && <p className="city-map-notice" role="status">{notice}</p>}{mapError && <p className="city-map-error">{mapError}</p>}
   </section>;
