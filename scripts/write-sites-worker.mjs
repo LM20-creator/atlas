@@ -43,10 +43,16 @@ async function placesApi(request, env) {
   return json({ error: "Méthode non autorisée." }, 405);
 }
 
+function mapConfigApi(env) {
+  if (!env.VITE_MAPBOX_TOKEN) return json({ error: "La configuration Mapbox est indisponible." }, 503);
+  return json({ mapboxToken: env.VITE_MAPBOX_TOKEN });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api/places") return placesApi(request, env);
+    if (url.pathname === "/api/map-config" && request.method === "GET") return mapConfigApi(env);
     if (!env.ASSETS || typeof env.ASSETS.fetch !== "function") return new Response("Site assets are unavailable.", { status: 503 });
     const response = await env.ASSETS.fetch(request);
     if (response.status !== 404) return response;

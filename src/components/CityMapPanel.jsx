@@ -54,7 +54,7 @@ function markerElement(place) {
 }
 
 export default function CityMapPanel({ city, onClose }) {
-  const token = import.meta.env.VITE_MAPBOX_TOKEN;
+  const [token, setToken] = useState(import.meta.env.VITE_MAPBOX_TOKEN || "");
   const mapNode = useRef(null);
   const mapRef = useRef(null);
   const modeRef = useRef("browse");
@@ -67,6 +67,22 @@ export default function CityMapPanel({ city, onClose }) {
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
   const [draft, setDraft] = useState({ name: "", address: "", category: "restaurant", lng: null, lat: null });
+
+  useEffect(() => {
+    if (token) return undefined;
+    let mounted = true;
+    fetch("/api/map-config")
+      .then(async (response) => {
+        if (!response.ok) throw new Error();
+        return response.json();
+      })
+      .then((config) => {
+        if (!mounted || !config.mapboxToken) throw new Error();
+        setToken(config.mapboxToken);
+      })
+      .catch(() => mounted && setMapError("La configuration Mapbox est indisponible."));
+    return () => { mounted = false; };
+  }, [token]);
 
   useEffect(() => {
     if (!token || !mapNode.current || mapRef.current) return undefined;
@@ -131,6 +147,7 @@ export default function CityMapPanel({ city, onClose }) {
     <div className="city-map-canvas" ref={mapNode} />
     <header className="city-map-header"><div><span>Plan partagé</span><h2>{city.name}</h2></div><div className="city-map-toolbar">{mode === "browse" && <button className="map-add-button" type="button" onClick={startAdding}><MapPin size={17} /> Ajouter une adresse</button>}<button className="city-map-close" type="button" onClick={onClose} aria-label="Fermer le plan"><X size={19} /></button></div></header>
     {mode === "adding" && <form className="place-form" onSubmit={submit}><div className="place-form-heading"><div><span>Nouvelle adresse</span><h3>Placez le repère</h3></div><button type="button" onClick={cancelAdding}>Annuler</button></div><p>Cliquez sur la carte pour déposer le marqueur, puis faites-le glisser si nécessaire.</p><label>Nom du lieu<input value={draft.name} onChange={(event) => setDraft((item) => ({ ...item, name: event.target.value }))} placeholder="Ex. Café du Bosphore" maxLength="90" required /></label><label>Adresse <span>facultatif</span><div className="place-input-icon"><Search size={16} /><input value={draft.address} onChange={(event) => setDraft((item) => ({ ...item, address: event.target.value }))} placeholder="Rue, quartier…" maxLength="160" /></div></label><label>Catégorie<select value={draft.category} onChange={(event) => setDraft((item) => ({ ...item, category: event.target.value }))}>{CATEGORIES.map((category) => <option key={category.id} value={category.id}>{category.label}</option>)}</select></label><button className="place-submit" type="submit" disabled={isSaving}>{isSaving ? "Ajout…" : "Ajouter à la carte"}</button></form>}
+    {!token && !mapError && <div className="city-map-message"><strong>Chargement du plan…</strong></div>}
     {notice && <p className="city-map-notice" role="status">{notice}</p>}{mapError && <p className="city-map-error">{mapError}</p>}
   </section>;
 }
