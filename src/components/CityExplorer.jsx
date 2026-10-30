@@ -166,7 +166,12 @@ export default function CityExplorer({ city, onBack }) {
   return (
     <section className={`city-explorer phase-${phase}`} style={themeVariables(theme)}>
       {district ? (
-        <CoverScene key={district.id} image={district.image} className="scene-district" />
+        <CoverScene
+          key={district.id}
+          image={district.image}
+          className="scene-district"
+          focusX={district.focusX ?? 50}
+        />
       ) : (
         <CoverScene
           image={city.capsuleImage}

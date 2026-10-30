@@ -138,6 +138,7 @@ export const cities = [
     //   lngLat  : position réelle (centre du plan Mapbox, repères du Camera Lab)
     //   veil    : couleur du voile de transition
     //   history : texte du panneau « En savoir plus » (à rédiger)
+    //   focusX  : (optionnel) cadrage initial sur mobile, en % de la largeur de l'image (50 = centre)
     districts: [
       {
         id: "galata",
@@ -147,6 +148,7 @@ export const cities = [
         lngLat: [28.9741, 41.0256],
         mapZoom: 15.2,
         image: istanbulGalata,
+        focusX: 64, // la tour, à droite de l'image
         veil: "#141d36",
         theme: {
           ink: "#fff0d6",

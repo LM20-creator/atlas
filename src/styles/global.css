@@ -1520,19 +1520,22 @@ button {
     linear-gradient(0deg, rgba(4, 13, 20, 0.45), transparent 26%);
 }
 
-/* Vue ville : défilement horizontal si l'image déborde (écran portrait) */
-.scene-city {
+/* Vues ville et quartier : défilement horizontal si l'image déborde (écran portrait) */
+.scene-city,
+.scene-district {
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
 }
 
-.scene-city::-webkit-scrollbar {
+.scene-city::-webkit-scrollbar,
+.scene-district::-webkit-scrollbar {
   display: none;
 }
 
-.scene-city .scene-cover {
+.scene-city .scene-cover,
+.scene-district .scene-cover {
   left: 0;
   transform: translateY(-50%);
 }
@@ -1547,7 +1550,8 @@ button {
 }
 
 .phase-zoom .scene-city,
-.phase-veil .scene-city {
+.phase-veil .scene-city,
+.phase-veil .scene-district {
   overflow: hidden;
 }
 
@@ -1571,11 +1575,11 @@ button {
 
 @keyframes scene-settle {
   from {
-    transform: translate(-50%, -50%) scale(1.07);
+    transform: translateY(-50%) scale(1.07);
   }
 
   to {
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateY(-50%) scale(1);
   }
 }
 
