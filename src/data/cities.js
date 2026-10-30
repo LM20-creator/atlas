@@ -11,6 +11,7 @@
 import istanbulOverview from "../assets/istanbul/overview.webp";
 import istanbulGalata from "../assets/istanbul/galata.webp";
 import istanbulSultanahmet from "../assets/istanbul/sultanahmet.webp";
+import istanbulBesiktas from "../assets/istanbul/besiktas.webp";
 import istanbulBadge from "../assets/badge-istanbul.webp";
 import florenceCapsule from "../assets/florence-capsule.webp";
 import florenceBadge from "../assets/badge-florence.webp";
@@ -172,6 +173,26 @@ export const cities = [
           gold: "#d4a64e",
           stone: "#e2d6c3",
           red: "#b0473a"
+        },
+        history: ""
+      },
+      {
+        id: "besiktas",
+        name: "Beşiktaş",
+        x: 61.3,
+        y: 21.3,
+        lngLat: [29.0045, 41.043],
+        mapZoom: 15.2,
+        image: istanbulBesiktas,
+        veil: "#2a1d1a",
+        theme: {
+          ink: "#fff1e0",
+          muted: "#c9b8b0",
+          deep: "#2a1d1a",
+          water: "#4a3f52",
+          gold: "#f2a54a",
+          stone: "#c9a27e",
+          red: "#9a2a24"
         },
         history: ""
       }
