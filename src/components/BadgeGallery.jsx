@@ -1,8 +1,8 @@
 import { ArrowLeft, LockKeyhole } from "lucide-react";
-import { badges } from "../data/badges.js";
+import { cities, isVisited } from "../data/cities.js";
 
 export default function BadgeGallery({ onBack }) {
-  const unlockedCount = badges.filter((badge) => badge.unlocked).length;
+  const unlockedCount = cities.filter(isVisited).length;
 
   return (
     <main className="badges-page">
@@ -25,31 +25,30 @@ export default function BadgeGallery({ onBack }) {
       </header>
 
       <section className="badges-grid" aria-label="Collection de badges de villes">
-        {badges.map((badge, index) => (
-          <article className={badge.unlocked ? "badge-card is-unlocked" : "badge-card is-locked"} key={badge.id}>
-            <div className="badge-visual">
-              {badge.unlocked ? (
-                <img
-                  src={badge.image}
-                  alt={`Badge de ${badge.city}`}
-                  loading="lazy"
-                  decoding="async"
-                />
-              ) : (
-                <div className="badge-placeholder" aria-hidden="true">
-                  <LockKeyhole size={24} strokeWidth={1.4} />
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                </div>
-              )}
-            </div>
+        {cities.map((city, index) => {
+          const unlocked = isVisited(city) && city.badgeImage;
 
-            <div className="badge-meta">
-              <span>{badge.country}</span>
-              <h2>{badge.city}</h2>
-              <p>{badge.unlocked ? "Débloqué" : "À débloquer"}</p>
-            </div>
-          </article>
-        ))}
+          return (
+            <article className={unlocked ? "badge-card is-unlocked" : "badge-card is-locked"} key={city.id}>
+              <div className="badge-visual">
+                {unlocked ? (
+                  <img src={city.badgeImage} alt={`Badge de ${city.name}`} loading="lazy" decoding="async" />
+                ) : (
+                  <div className="badge-placeholder" aria-hidden="true">
+                    <LockKeyhole size={24} strokeWidth={1.4} />
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="badge-meta">
+                <span>{city.country}</span>
+                <h2>{city.name}</h2>
+                <p>{unlocked ? "Débloqué" : "À débloquer"}</p>
+              </div>
+            </article>
+          );
+        })}
       </section>
     </main>
   );

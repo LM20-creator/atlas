@@ -1,9 +1,10 @@
 import { lazy, Suspense, useState } from "react";
-import { cities } from "./data/cities.js";
+import { getCity } from "./data/cities.js";
+import AtlasHome from "./components/AtlasHome.jsx";
 import BadgeGallery from "./components/BadgeGallery.jsx";
 import CityCapsule from "./components/CityCapsule.jsx";
-import GlobeView from "./components/GlobeView.jsx";
 
+// Outil de cadrage caméra, disponible uniquement en local (npm run dev) sur /istanbul-camera-lab.
 const IstanbulCameraLab = import.meta.env.DEV
   ? lazy(() => import("./components/IstanbulCameraLab.jsx"))
   : null;
@@ -11,10 +12,9 @@ const IstanbulCameraLab = import.meta.env.DEV
 export default function App() {
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [activePage, setActivePage] = useState("atlas");
-  const isCameraLab = Boolean(IstanbulCameraLab) && window.location.pathname === "/istanbul-camera-lab";
-  const selectedCity = cities.find((city) => city.id === selectedCityId);
+  const selectedCity = getCity(selectedCityId);
 
-  if (isCameraLab) {
+  if (IstanbulCameraLab && window.location.pathname === "/istanbul-camera-lab") {
     return (
       <Suspense fallback={null}>
         <IstanbulCameraLab />
@@ -23,18 +23,14 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
+    <div className="app-shell">
       {selectedCity ? (
         <CityCapsule city={selectedCity} onBack={() => setSelectedCityId(null)} />
       ) : activePage === "badges" ? (
         <BadgeGallery onBack={() => setActivePage("atlas")} />
       ) : (
-        <GlobeView
-          cities={cities}
-          onSelectCity={setSelectedCityId}
-          onOpenBadges={() => setActivePage("badges")}
-        />
+        <AtlasHome onSelectCity={setSelectedCityId} onOpenBadges={() => setActivePage("badges")} />
       )}
-    </main>
+    </div>
   );
 }

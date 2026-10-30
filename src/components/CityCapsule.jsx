@@ -5,43 +5,30 @@ import InfoPanel from "./InfoPanel.jsx";
 
 const CityMapPanel = lazy(() => import("./CityMapPanel.jsx"));
 
+/** Palette de la ville exposée en variables CSS (--theme-ink, --theme-gold, …). */
+function themeVariables(theme = {}) {
+  return Object.fromEntries(Object.entries(theme).map(([name, value]) => [`--theme-${name}`, value]));
+}
+
 export default function CityCapsule({ city, onBack }) {
   const [activePointId, setActivePointId] = useState(null);
-  const [panelMode, setPanelMode] = useState(null);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const activePoint = city.points.find((point) => point.id === activePointId);
-  const showInfoPanel = Boolean(activePoint);
-  const showMap = panelMode === "map";
 
   function selectPoint(pointId) {
     setActivePointId(pointId);
-    setPanelMode(null);
+    setIsMapOpen(false);
   }
 
-  function showMapPanel(event) {
-    event.preventDefault();
+  function openMap() {
     setActivePointId(null);
-    setPanelMode("map");
+    setIsMapOpen(true);
   }
 
   return (
-    <section
-      className="capsule-view"
-      style={{
-        "--theme-ink": city.theme.ink,
-        "--theme-muted": city.theme.muted,
-        "--theme-deep": city.theme.deep,
-        "--theme-water": city.theme.water,
-        "--theme-gold": city.theme.gold,
-        "--theme-stone": city.theme.stone,
-        "--theme-red": city.theme.red
-      }}
-    >
+    <section className="capsule-view" style={themeVariables(city.theme)}>
       <div className="capsule-stage">
-        <AtmosphereMap
-          city={city}
-          activePointId={activePointId}
-          onSelectPoint={selectPoint}
-        />
+        <AtmosphereMap city={city} activePointId={activePointId} onSelectPoint={selectPoint} />
 
         <div className="capsule-topbar" aria-label="Navigation de la capsule">
           <div className="capsule-brand">
@@ -52,17 +39,11 @@ export default function CityCapsule({ city, onBack }) {
               aria-label="Retour à l’atlas"
             >
               <ArrowLeft size={17} />
-              <span>Globe</span>
+              <span>Atlas</span>
             </button>
 
-            {city.logoImage && (
-              <img
-                className="capsule-logo"
-                src={city.logoImage}
-                alt=""
-                aria-hidden="true"
-                decoding="async"
-              />
+            {city.badgeImage && (
+              <img className="capsule-logo" src={city.badgeImage} alt="" aria-hidden="true" decoding="async" />
             )}
           </div>
 
@@ -89,10 +70,10 @@ export default function CityCapsule({ city, onBack }) {
                 <span>Photos</span>
               </button>
             )}
-            <a className="floating-action" href={city.mapUrl} onClick={showMapPanel} aria-label="Ouvrir le plan">
+            <button className="floating-action" type="button" onClick={openMap} aria-label="Ouvrir le plan">
               <Map size={17} />
               <span>Plan</span>
-            </a>
+            </button>
           </div>
         </div>
 
@@ -102,20 +83,11 @@ export default function CityCapsule({ city, onBack }) {
           <span>{city.subtitle}</span>
         </div>
 
-        {showInfoPanel && (
-          <InfoPanel
-            city={city}
-            point={activePoint}
-            onClose={() => {
-              setActivePointId(null);
-              setPanelMode(null);
-            }}
-          />
-        )}
+        {activePoint && <InfoPanel point={activePoint} onClose={() => setActivePointId(null)} />}
 
-        {showMap && (
+        {isMapOpen && (
           <Suspense fallback={<div className="city-map-loading">Chargement du plan…</div>}>
-            <CityMapPanel city={city} onClose={() => setPanelMode(null)} />
+            <CityMapPanel city={city} onClose={() => setIsMapOpen(false)} />
           </Suspense>
         )}
       </div>

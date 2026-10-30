@@ -1,26 +1,24 @@
 import { Check, Copy, Eye, EyeOff, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { cities } from "../data/cities.js";
-import { istanbulCameraV2 } from "../data/istanbulCameraV2.js";
+import { getCity } from "../data/cities.js";
+import { loadMapbox, parseStyleUrl } from "../lib/mapbox.js";
+import "../styles/camera-lab.css";
 
-const MAPBOX_GL_VERSION = "3.28.1";
+const istanbul = getCity("istanbul");
+const reference = istanbul.referenceCamera;
 
 const INITIAL_CAMERA = {
-  lng: istanbulCameraV2.camera.center[0],
-  lat: istanbulCameraV2.camera.center[1],
-  zoom: istanbulCameraV2.camera.zoom,
-  bearing: istanbulCameraV2.camera.bearing,
-  pitch: istanbulCameraV2.camera.pitch
+  lng: reference.center[0],
+  lat: reference.center[1],
+  zoom: reference.zoom,
+  bearing: reference.bearing,
+  pitch: reference.pitch
 };
 
-const ISTANBUL_MARKERS = [
-  { id: "blue-mosque", label: "Mosquée Bleue", coordinates: [28.9768, 41.0054] },
-  { id: "hagia-sophia", label: "Sainte-Sophie", coordinates: [28.98, 41.0086] },
-  { id: "topkapi", label: "Palais de Topkapi", coordinates: [28.984, 41.0115] },
-  { id: "grand-bazaar", label: "Grand Bazar", coordinates: [28.9681, 41.0107] },
-  { id: "galata", label: "Tour de Galata", coordinates: [28.9741, 41.0256] },
-  { id: "galata-bridge", label: "Pont de Galata", coordinates: [28.9738, 41.0201] }
-];
+// Repères géolocalisés de la capsule (points ayant un lngLat dans cities.js).
+const ISTANBUL_MARKERS = istanbul.points
+  .filter((point) => point.lngLat)
+  .map((point) => ({ id: point.id, label: point.title, coordinates: point.lngLat }));
 
 const NEUTRAL_3D_STYLE = {
   version: 8,
@@ -111,19 +109,13 @@ const CONTROL_FIELDS = [
   { key: "pitch", label: "Pitch", min: 0, max: 85, step: 1 }
 ];
 
-function getStyleUrl(mapStyleUrl) {
-  const match = mapStyleUrl.match(/styles\/v1\/([^/]+)\/([^/.]+)/);
-  return match ? `mapbox://styles/${match[1]}/${match[2]}` : mapStyleUrl;
-}
-
 function getStyleApiUrl(mapStyleUrl, token) {
-  const match = mapStyleUrl.match(/styles\/v1\/([^/]+)\/([^/.]+)/);
-
-  if (!match) {
+  const parsed = parseStyleUrl(mapStyleUrl);
+  if (!parsed) {
     return "";
   }
 
-  return `https://api.mapbox.com/styles/v1/${match[1]}/${match[2]}?access_token=${encodeURIComponent(token)}`;
+  return `https://api.mapbox.com/styles/v1/${parsed.owner}/${parsed.styleId}?access_token=${encodeURIComponent(token)}`;
 }
 
 async function loadExistingStyle(mapStyleUrl, token) {
@@ -164,41 +156,7 @@ function buildConfig(camera) {
 }`;
 }
 
-function loadMapbox() {
-  if (window.mapboxgl) {
-    return Promise.resolve(window.mapboxgl);
-  }
-
-  return new Promise((resolve, reject) => {
-    const existingScript = document.querySelector("script[data-mapbox-gl]");
-    const existingLink = document.querySelector("link[data-mapbox-gl]");
-
-    if (!existingLink) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_GL_VERSION}/mapbox-gl.css`;
-      link.dataset.mapboxGl = "true";
-      document.head.appendChild(link);
-    }
-
-    if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(window.mapboxgl), { once: true });
-      existingScript.addEventListener("error", reject, { once: true });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_GL_VERSION}/mapbox-gl.js`;
-    script.async = true;
-    script.dataset.mapboxGl = "true";
-    script.addEventListener("load", () => resolve(window.mapboxgl), { once: true });
-    script.addEventListener("error", reject, { once: true });
-    document.head.appendChild(script);
-  });
-}
-
 export default function IstanbulCameraLab() {
-  const istanbul = cities.find((city) => city.id === "istanbul");
   const token = import.meta.env.VITE_MAPBOX_TOKEN;
   const exportMode = new URLSearchParams(window.location.search).get("export");
   const isExportMode = exportMode === "annotated" || exportMode === "clean" || exportMode === "geo3d";
@@ -225,12 +183,6 @@ export default function IstanbulCameraLab() {
       .then(([mapboxgl, style]) => {
         if (!isMounted || !mapContainerRef.current) {
           return;
-        }
-
-        const styleUrl = getStyleUrl(istanbul.mapStyleUrl);
-
-        if (!styleUrl.startsWith("mapbox://styles/")) {
-          throw new Error("L’URL Mapbox Studio existante ne peut pas être convertie en URL de style Mapbox GL JS.");
         }
 
         mapboxgl.accessToken = token;
@@ -352,7 +304,7 @@ export default function IstanbulCameraLab() {
       mapRef.current = null;
       delete window.__istanbulCameraLabMap;
     };
-  }, [isCleanExport, isGeo3dExport, istanbul, token]);
+  }, [isCleanExport, isGeo3dExport, token]);
 
   useEffect(() => {
     const map = mapRef.current;

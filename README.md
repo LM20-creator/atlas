@@ -1,46 +1,55 @@
 # Atlas privé
 
-Application statique Vite/React de capsules visuelles de voyage.
+Application web (Vite + React) de capsules visuelles de voyage : une carte d'accueil des étapes, une capsule illustrée par ville avec ses repères, une galerie de badges et un plan Mapbox partagé.
 
 ## Lancer en local
 
-Prérequis : Node.js 20 ou une version plus récente.
+Prérequis : Node.js 20 ou plus récent.
 
 ```bash
 npm install
-cp .env.example .env.local
+cp .env.example .env.local   # puis renseigner VITE_MAPBOX_TOKEN
 npm run dev
 ```
 
-Renseigner `VITE_MAPBOX_TOKEN` dans `.env.local` pour activer les plans Mapbox. Le bouton Plan affiche un message explicite lorsque la variable est absente.
+Pages disponibles en local :
 
-Les variables préfixées par `VITE_` sont intégrées au code côté navigateur. Utiliser uniquement un jeton public Mapbox et lui appliquer des restrictions d’URL depuis le compte Mapbox avant une mise en ligne publique.
+- `http://127.0.0.1:5173/` : l'application
+- `http://127.0.0.1:5173/istanbul-camera-lab` : **Camera Lab**, l'outil de cadrage des vues 3D Mapbox (dev uniquement, absent du build)
 
-## Build statique
+Le jeton Mapbox est public (`pk.…`). Il faut le restreindre aux domaines du site depuis le compte Mapbox avant toute mise en ligne.
 
-```bash
-npm run build
-npm run preview
+## Organisation
+
+```
+src/
+  data/cities.js        ← SOURCE UNIQUE : villes, statut (visited / planned), images, repères, palette
+  lib/mapbox.js         ← chargement de Mapbox GL, jeton, conversion des URL de style
+  components/
+    AtlasHome.jsx       ← accueil : carte des étapes au départ de Paris
+    CityCapsule.jsx     ← capsule d'une ville (image + repères + panneaux)
+    AtmosphereMap.jsx, MarkerLayer.jsx, InfoPanel.jsx
+    CityMapPanel.jsx    ← plan Mapbox partagé (adresses)
+    BadgeGallery.jsx    ← badges, générés depuis cities.js
+    IstanbulCameraLab.jsx ← outil de dev
+  styles/global.css     ← styles de l'application
+  styles/camera-lab.css ← styles du Camera Lab
+server/worker.js        ← API (/api/places, /api/map-config) de l'hébergement actuel
+drizzle/                ← schéma SQL de la table des adresses
+exports/                ← images de référence produites avec le Camera Lab
 ```
 
-Le site généré se trouve dans `dist/`. La configuration Vite utilise des chemins relatifs afin que le build fonctionne à la racine d’un domaine comme dans un sous-dossier.
+### Ajouter une ville
 
-## Déploiement
+Dans `src/data/cities.js`, ajouter une entrée `status: "planned"` (nom, pays, sous-titre, coordonnées). Elle apparaît automatiquement sur la carte et dans les badges à débloquer. Pour l'ouvrir, passer `status: "visited"` et renseigner `capsuleImage`, `badgeImage`, `theme`, `points`, `mapStyleUrl`.
 
-### Vercel
+## Build et hébergement
 
-1. Importer le dossier ou le dépôt.
-2. Ajouter `VITE_MAPBOX_TOKEN` dans les variables d’environnement du projet.
-3. Déployer. Les commandes et le dossier de sortie sont définis dans `vercel.json`.
+```bash
+npm run build     # → dist/client (site) + dist/server/index.js (worker)
+npm run preview   # aperçu du site statique (sans l'API)
+```
 
-### Netlify
+Hébergement actuel, temporaire : **OpenAI Sites** (worker + base D1 `DB`, voir `.openai/hosting.json`). Variable d'environnement côté serveur : `VITE_MAPBOX_TOKEN`.
 
-1. Importer le dossier ou le dépôt.
-2. Ajouter `VITE_MAPBOX_TOKEN` dans les variables d’environnement du site.
-3. Déployer. La commande et le dossier de publication sont définis dans `netlify.toml`.
-
-Pour tout autre hébergeur statique, exécuter `npm run build` et publier le contenu de `dist/`.
-
-## Données du MVP
-
-Les villes et leurs points d’intérêt restent dans `src/data/`. Les albums Google Photos sont des liens externes. Aucun backend ni système d’authentification n’est nécessaire pour cette version.
+Le site statique fonctionne seul. Le plan partagé (lecture et ajout d'adresses) dépend en revanche de l'API du worker, qu'il faudra porter vers le futur hébergeur.

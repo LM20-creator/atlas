@@ -1,7 +1,5 @@
 node_modules/
-.pnpm-store/
 dist/
-dist-check/
 *.site.tar.gz
-.vite-cache/
 .env*.local
+.DS_Store
