@@ -1,14 +1,17 @@
 /**
  * Source unique des villes de l'atlas.
  *
- * - status "visited" : capsule disponible (image, points, badge débloqué).
+ * - status "visited" : capsule disponible, badge débloqué.
+ *     · avec `districts` : vue générale de la ville → quartiers (nouveau modèle) ;
+ *     · avec `points`    : une image + repères cliquables (ancien modèle, Florence en attendant).
  * - status "planned" : étape future, affichée sur la carte et dans les badges à débloquer.
  *
  * L'ordre du tableau = l'ordre des étapes sur la carte d'accueil et dans la galerie de badges.
  */
-import istanbulCapsule from "../assets/istanbul-capsule.webp";
+import istanbulOverview from "../assets/istanbul/overview.webp";
+import istanbulGalata from "../assets/istanbul/galata.webp";
+import istanbulSultanahmet from "../assets/istanbul/sultanahmet.webp";
 import istanbulBadge from "../assets/badge-istanbul.webp";
-import bosphorusGhostFleet from "../assets/bosphorus-russian-ghost-fleet.webp";
 import florenceCapsule from "../assets/florence-capsule.webp";
 import florenceBadge from "../assets/badge-florence.webp";
 
@@ -102,12 +105,13 @@ export const cities = [
     country: "Turquie",
     subtitle: "Bosphore, empires et passages",
     coordinates: { lat: 41.0082, lng: 28.9784 },
-    capsuleImage: istanbulCapsule,
+    // Vue générale stylisée de la ville (aussi utilisée comme vignette sur l'accueil).
+    capsuleImage: istanbulOverview,
     badgeImage: istanbulBadge,
     albumUrl: "https://photos.app.goo.gl/RLJxDxjaEi1JhCFHA",
     mapStyleUrl: MAPBOX_STYLE_URL,
-    mapZoom: 10.6,
-    // Caméra de référence (Camera Lab) ayant servi à produire la vue de la capsule.
+    mapZoom: 12.4,
+    // Caméra de référence (Camera Lab).
     referenceCamera: {
       center: [28.98192, 41.01297],
       zoom: 13.95,
@@ -115,97 +119,61 @@ export const cities = [
       pitch: 60,
       aspectRatio: "16:9"
     },
+    // Palette de la vue générale (heure dorée).
     theme: {
-      ink: "#f6ead4",
-      muted: "#adc3bf",
-      deep: "#09253a",
-      water: "#0e5672",
-      gold: "#c69a45",
-      stone: "#d8b886",
-      red: "#6f2024"
+      ink: "#fff1dc",
+      muted: "#c9b9a2",
+      deep: "#13242d",
+      water: "#223338",
+      gold: "#d9a35a",
+      stone: "#d1b28c",
+      red: "#7a3b22"
     },
-    intro:
-      "Une capsule visuelle orientée par la Corne d'Or et le Bosphore, entre péninsule historique, rive de Galata et seuil asiatique.",
-    // x / y : position du repère en % de l'image de capsule.
-    // lngLat : position géographique réelle (utilisée par le Camera Lab).
-    points: [
-      {
-        id: "blue-mosque",
-        title: "Mosquée Bleue",
-        type: "Monument",
-        x: 48,
-        y: 78,
-        lngLat: [28.9768, 41.0054],
-        text:
-          "Placeholder : premier repère de la péninsule historique dans cette vue depuis le sud, avec ses minarets et ses coupoles."
-      },
-      {
-        id: "hagia-sophia",
-        title: "Sainte-Sophie",
-        type: "Monument",
-        x: 46,
-        y: 58,
-        lngLat: [28.98, 41.0086],
-        text:
-          "Placeholder : masse de pierre chaude entre Mosquée Bleue et Topkapi, mémoire byzantine puis ottomane."
-      },
-      {
-        id: "grand-bazaar",
-        title: "Grand Bazar",
-        type: "Marché",
-        x: 25,
-        y: 70,
-        lngLat: [28.9681, 41.0107],
-        text:
-          "Placeholder : trame dense de toits, passages couverts, or patiné et rouge sombre au sud-ouest de Sultanahmet."
-      },
-      {
-        id: "topkapi",
-        title: "Topkapi",
-        type: "Palais",
-        x: 66,
-        y: 61,
-        lngLat: [28.984, 41.0115],
-        text:
-          "Placeholder : jardins, murs et pavillons en promontoire, posé entre la Corne d'Or, la mer de Marmara et le Bosphore."
-      },
+    // Quartiers visités, dans l'ordre de navigation précédent / suivant.
+    //   x / y   : position du point lumineux en % de la vue générale
+    //   lngLat  : position réelle (centre du plan Mapbox, repères du Camera Lab)
+    //   veil    : couleur du voile de transition
+    //   history : texte du panneau « En savoir plus » (à rédiger)
+    districts: [
       {
         id: "galata",
-        title: "Tour de Galata",
-        type: "Repère",
-        x: 43,
-        y: 24,
+        name: "Galata",
+        x: 38.3,
+        y: 25.5,
         lngLat: [28.9741, 41.0256],
-        text:
-          "Placeholder : repère vertical de l'autre côté de la Corne d'Or, au-dessus de Karaköy et des quartiers denses."
+        mapZoom: 15.2,
+        image: istanbulGalata,
+        veil: "#141d36",
+        theme: {
+          ink: "#fff0d6",
+          muted: "#b9b4c8",
+          deep: "#141d36",
+          water: "#2c4169",
+          gold: "#f0a64a",
+          stone: "#d9a774",
+          red: "#7d4317"
+        },
+        history: ""
       },
       {
-        id: "galata-bridge",
-        title: "Pont de Galata",
-        type: "Passage",
-        x: 34,
-        y: 43,
-        lngLat: [28.9738, 41.0201],
-        text:
-          "Placeholder : liaison visuelle entre Galata et la péninsule historique, au-dessus de la Corne d'Or."
-      },
-      {
-        id: "bosphorus",
-        title: "Bosphore",
-        type: "Eau",
-        x: 65,
-        y: 34,
-        image: bosphorusGhostFleet,
-        text: "La flotte fantôme russe"
-      },
-      {
-        id: "asian-side",
-        title: "Rive asiatique",
-        type: "Rive",
-        x: 86,
-        y: 33,
-        text:
-          "Placeholder : bord opposé du Bosphore, contrepoint asiatique de la péninsule et de Galata."
+        id: "sultanahmet",
+        name: "Sultanahmet",
+        x: 33.5,
+        y: 60,
+        lngLat: [28.977, 41.0068],
+        mapZoom: 15.2,
+        image: istanbulSultanahmet,
+        veil: "#e9e3d6",
+        theme: {
+          ink: "#fffaf0",
+          muted: "#d6dde2",
+          deep: "#2c3a44",
+          water: "#8fb4cf",
+          gold: "#d4a64e",
+          stone: "#e2d6c3",
+          red: "#b0473a"
+        },
+        history: ""
       }
     ]
   },

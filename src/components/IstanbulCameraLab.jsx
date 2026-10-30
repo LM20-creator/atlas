@@ -15,10 +15,12 @@ const INITIAL_CAMERA = {
   pitch: reference.pitch
 };
 
-// Repères géolocalisés de la capsule (points ayant un lngLat dans cities.js).
-const ISTANBUL_MARKERS = istanbul.points
-  .filter((point) => point.lngLat)
-  .map((point) => ({ id: point.id, label: point.title, coordinates: point.lngLat }));
+// Repères géolocalisés : les quartiers d'Istanbul (lngLat dans cities.js).
+const ISTANBUL_MARKERS = istanbul.districts.map((district) => ({
+  id: district.id,
+  label: district.name,
+  coordinates: district.lngLat
+}));
 
 const NEUTRAL_3D_STYLE = {
   version: 8,

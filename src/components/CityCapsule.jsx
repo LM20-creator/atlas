@@ -2,14 +2,11 @@ import { ArrowLeft, Images, Map } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 import AtmosphereMap from "./AtmosphereMap.jsx";
 import InfoPanel from "./InfoPanel.jsx";
+import { themeVariables } from "../lib/theme.js";
 
 const CityMapPanel = lazy(() => import("./CityMapPanel.jsx"));
 
-/** Palette de la ville exposée en variables CSS (--theme-ink, --theme-gold, …). */
-function themeVariables(theme = {}) {
-  return Object.fromEntries(Object.entries(theme).map(([name, value]) => [`--theme-${name}`, value]));
-}
-
+/** Ancien modèle de capsule : une image + repères cliquables (Florence, en attendant ses quartiers). */
 export default function CityCapsule({ city, onBack }) {
   const [activePointId, setActivePointId] = useState(null);
   const [isMapOpen, setIsMapOpen] = useState(false);

@@ -29,7 +29,8 @@ function markerElement(place) {
   return element;
 }
 
-export default function CityMapPanel({ city, onClose }) {
+/** Plan partagé de la ville. `focus` (optionnel) : quartier sur lequel centrer la carte. */
+export default function CityMapPanel({ city, focus, onClose }) {
   const mapNode = useRef(null);
   const mapRef = useRef(null);
   const modeRef = useRef("browse");
@@ -67,8 +68,8 @@ export default function CityMapPanel({ city, onClose }) {
         const map = new mapboxgl.Map({
           container: mapNode.current,
           style: toMapboxStyleUrl(city.mapStyleUrl),
-          center: [city.coordinates.lng, city.coordinates.lat],
-          zoom: city.mapZoom ?? 11
+          center: focus?.lngLat ?? [city.coordinates.lng, city.coordinates.lat],
+          zoom: focus?.mapZoom ?? city.mapZoom ?? 11
         });
         map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
         map.on("error", (event) => event?.error?.message && setMapError(`Erreur Mapbox : ${event.error.message}`));
@@ -227,7 +228,7 @@ export default function CityMapPanel({ city, onClose }) {
       <header className="city-map-header">
         <div>
           <span>Plan partagé</span>
-          <h2>{city.name}</h2>
+          <h2>{focus ? `${city.name} · ${focus.name}` : city.name}</h2>
         </div>
         <div className="city-map-toolbar">
           {mode === "browse" && (

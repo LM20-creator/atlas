@@ -1461,6 +1461,456 @@ button {
   }
 }
 
+/* ============================================================
+   Ville & quartiers (CityExplorer)
+   Durées à garder en phase avec CityExplorer.jsx :
+   zoom 700 ms · voile 380 ms · apparition 750 ms
+   ============================================================ */
+
+.city-explorer {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--theme-ink);
+  background: var(--theme-deep);
+}
+
+@supports (height: 100dvh) {
+  .city-explorer {
+    height: 100dvh;
+  }
+}
+
+/* Image plein écran recadrée « cover » : .scene-cover a exactement la taille de l'image affichée,
+   les points positionnés en % à l'intérieur restent donc alignés sur l'image. */
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+}
+
+.scene-cover {
+  --scene-ratio: 1.7768; /* 1672 / 941 */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100cqw, 100cqh * var(--scene-ratio));
+  height: max(100cqh, 100cqw / var(--scene-ratio));
+  transform: translate(-50%, -50%);
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+}
+
+.scene-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.scene-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4, 13, 20, 0.42), transparent 20%),
+    linear-gradient(0deg, rgba(4, 13, 20, 0.45), transparent 26%);
+}
+
+/* Vue ville : défilement horizontal si l'image déborde (écran portrait) */
+.scene-city {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.scene-city::-webkit-scrollbar {
+  display: none;
+}
+
+.scene-city .scene-cover {
+  left: 0;
+  transform: translateY(-50%);
+}
+
+/* Transitions */
+.scene-city .scene-cover {
+  transition: transform 700ms cubic-bezier(0.55, 0, 0.8, 0.25);
+}
+
+.phase-zoom .scene-city .scene-cover {
+  transform: translateY(-50%) scale(2.4);
+}
+
+.phase-zoom .scene-city,
+.phase-veil .scene-city {
+  overflow: hidden;
+}
+
+.phase-unzoom .scene-city .scene-cover {
+  animation: scene-unzoom 850ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.phase-reveal .scene-district .scene-cover {
+  animation: scene-settle 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes scene-unzoom {
+  from {
+    transform: translateY(-50%) scale(2.4);
+  }
+
+  to {
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+@keyframes scene-settle {
+  from {
+    transform: translate(-50%, -50%) scale(1.07);
+  }
+
+  to {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.scene-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: var(--veil-color);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 750ms ease;
+}
+
+.phase-zoom .scene-veil {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 380ms ease 320ms;
+}
+
+.phase-veil .scene-veil {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 380ms ease;
+}
+
+.scene-veil span {
+  color: #fff;
+  mix-blend-mode: difference;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+
+.phase-zoom .scene-veil span,
+.phase-veil .scene-veil span {
+  animation: veil-label 1.4s ease-in-out 450ms infinite;
+}
+
+@keyframes veil-label {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Points lumineux des quartiers */
+.district-point {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  animation: capsule-fade-in 700ms ease 300ms both;
+  transition: opacity 200ms ease;
+}
+
+.district-point::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--point-color) 42%, transparent), transparent 68%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.4);
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
+}
+
+.district-point-dot {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  background: #fff8ea;
+  border-radius: 50%;
+  animation: district-breathe 2.8s ease-in-out infinite;
+  transition: transform 220ms ease;
+}
+
+@keyframes district-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--point-color) 45%, transparent),
+      0 0 12px 4px color-mix(in srgb, var(--point-color) 55%, transparent);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 6px color-mix(in srgb, var(--point-color) 25%, transparent),
+      0 0 26px 10px color-mix(in srgb, var(--point-color) 70%, transparent);
+  }
+}
+
+.district-point-label {
+  position: absolute;
+  left: calc(50% + 18px);
+  top: 50%;
+  color: #fff8ea;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-6px, -50%);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.district-point:hover::before,
+.district-point:focus-visible::before,
+.district-point.is-selected::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.district-point:hover .district-point-dot,
+.district-point:focus-visible .district-point-dot,
+.district-point.is-selected .district-point-dot {
+  transform: scale(1.35);
+}
+
+.district-point:hover .district-point-label,
+.district-point:focus-visible .district-point-label,
+.district-point.is-selected .district-point-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.district-point:focus-visible {
+  outline: none;
+}
+
+.phase-zoom .district-point {
+  opacity: 0;
+}
+
+/* Indication au premier passage */
+.district-hint {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(1rem, 4vh, 2rem));
+  left: 0;
+  right: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  margin: 0 auto;
+  padding: 0.5rem 0.95rem;
+  color: rgba(255, 248, 234, 0.92);
+  background: rgba(7, 19, 28, 0.4);
+  border: 1px solid rgba(246, 234, 212, 0.16);
+  border-radius: 999px;
+  backdrop-filter: blur(16px);
+  font-size: 0.78rem;
+  pointer-events: none;
+  animation: capsule-fade-in 800ms ease 1.2s both;
+}
+
+/* Vue quartier : fil d'Ariane, actions, navigation entre quartiers */
+.breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0 0.95rem;
+  color: rgba(255, 248, 234, 0.72);
+  background: rgba(7, 19, 28, 0.36);
+  border: 1px solid rgba(246, 234, 212, 0.16);
+  border-radius: 999px;
+  backdrop-filter: blur(16px);
+  font-size: 0.8rem;
+  pointer-events: auto;
+}
+
+.breadcrumb button {
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.breadcrumb button:hover,
+.breadcrumb button:focus-visible {
+  color: #fff8ea;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.breadcrumb strong {
+  color: var(--theme-gold);
+  font-weight: 800;
+}
+
+.floating-action.is-active {
+  background: color-mix(in srgb, var(--theme-gold) 30%, transparent);
+}
+
+.district-switcher {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(0.75rem, 2vw, 1.25rem));
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  width: max-content;
+  margin: 0 auto;
+  padding: 0.2rem;
+  background: rgba(7, 19, 28, 0.3);
+  border: 1px solid rgba(246, 234, 212, 0.12);
+  border-radius: 999px;
+  backdrop-filter: blur(14px);
+  opacity: 0.75;
+  transition: opacity 200ms ease;
+}
+
+.district-switcher:hover,
+.district-switcher:focus-within {
+  opacity: 1;
+}
+
+.district-switcher button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: #fff8ea;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.district-switcher button:hover,
+.district-switcher button:focus-visible {
+  background: rgba(246, 234, 212, 0.12);
+  outline: none;
+}
+
+.district-switcher .district-switcher-dot {
+  width: 1.1rem;
+}
+
+.district-switcher-dot::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 248, 234, 0.45);
+  border-radius: 999px;
+  transition:
+    width 200ms ease,
+    background 200ms ease;
+}
+
+.district-switcher-dot.is-current::after {
+  width: 14px;
+  background: var(--theme-gold);
+}
+
+.city-heading {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.city-explorer .city-heading h1 {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+}
+
+@media (max-width: 880px) {
+  .district-hint {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem);
+  }
+
+  .city-explorer .city-heading h1 {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+
+  .breadcrumb {
+    min-height: 44px;
+    padding: 0 0.8rem;
+    font-size: 0.74rem;
+  }
+
+  .district-switcher button {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+
+  .district-switcher .district-switcher-dot {
+    width: 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-cover,
+  .phase-unzoom .scene-city .scene-cover,
+  .phase-reveal .scene-district .scene-cover {
+    transition: none;
+    animation: none;
+  }
+
+  .district-point-dot,
+  .scene-veil span {
+    animation: none;
+  }
+}
+
 @media (max-width: 1100px) {
   .badges-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
