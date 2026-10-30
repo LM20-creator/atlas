@@ -52,4 +52,6 @@ npm run preview   # aperçu du site statique (sans l'API)
 
 Hébergement actuel, temporaire : **OpenAI Sites** (worker + base D1 `DB`, voir `.openai/hosting.json`). Variable d'environnement côté serveur : `VITE_MAPBOX_TOKEN`.
 
+Version de test partageable : **GitHub Pages**, https://lm20-creator.github.io/atlas/. Elle est republiée automatiquement à chaque envoi sur `main` (`git push github main`, voir `.github/workflows/pages.yml`). Le jeton Mapbox est stocké dans les secrets du dépôt (`VITE_MAPBOX_TOKEN`). Le site est statique : le plan s'affiche, mais les adresses partagées ne sont pas disponibles.
+
 Le site statique fonctionne seul. Le plan partagé (lecture et ajout d'adresses) dépend en revanche de l'API du worker, qu'il faudra porter vers le futur hébergeur.
