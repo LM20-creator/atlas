@@ -1728,6 +1728,19 @@ button {
   transform: translate(0, -50%);
 }
 
+/* Points proches du bord droit : le nom s'affiche à gauche du point */
+.district-point.is-label-left .district-point-label {
+  left: auto;
+  right: calc(50% + 18px);
+  transform: translate(6px, -50%);
+}
+
+.district-point.is-label-left:hover .district-point-label,
+.district-point.is-label-left:focus-visible .district-point-label,
+.district-point.is-label-left.is-selected .district-point-label {
+  transform: translate(0, -50%);
+}
+
 .district-point:focus-visible {
   outline: none;
 }

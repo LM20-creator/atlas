@@ -179,7 +179,7 @@ export default function CityExplorer({ city, onBack }) {
             <button
               key={item.id}
               type="button"
-              className={`district-point${selectedId === item.id ? " is-selected" : ""}`}
+              className={`district-point${item.x > 80 ? " is-label-left" : ""}${selectedId === item.id ? " is-selected" : ""}`}
               style={{ left: `${item.x}%`, top: `${item.y}%`, "--point-color": item.theme.gold }}
               onClick={(event) => handlePointClick(event, item)}
               aria-label={`Entrer dans le quartier ${item.name}`}

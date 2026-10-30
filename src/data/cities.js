@@ -12,6 +12,9 @@ import istanbulOverview from "../assets/istanbul/overview.webp";
 import istanbulGalata from "../assets/istanbul/galata.webp";
 import istanbulSultanahmet from "../assets/istanbul/sultanahmet.webp";
 import istanbulBesiktas from "../assets/istanbul/besiktas.webp";
+import istanbulGalataBridge from "../assets/istanbul/galata-bridge.webp";
+import istanbulUskudar from "../assets/istanbul/uskudar.webp";
+import istanbulBosphorus from "../assets/istanbul/bosphorus.webp";
 import istanbulBadge from "../assets/badge-istanbul.webp";
 import florenceCapsule from "../assets/florence-capsule.webp";
 import florenceBadge from "../assets/badge-florence.webp";
@@ -193,6 +196,66 @@ export const cities = [
           gold: "#f2a54a",
           stone: "#c9a27e",
           red: "#9a2a24"
+        },
+        history: ""
+      },
+      {
+        id: "galata-bridge",
+        name: "Pont de Galata",
+        x: 26.5,
+        y: 37.5,
+        lngLat: [28.9738, 41.0201],
+        mapZoom: 15.4,
+        image: istanbulGalataBridge,
+        veil: "#dfe4ea",
+        theme: {
+          ink: "#fffaf0",
+          muted: "#d3d8de",
+          deep: "#3b3f45",
+          water: "#4f7fa6",
+          gold: "#e0ad3c",
+          stone: "#b9b2a8",
+          red: "#b5523c"
+        },
+        history: ""
+      },
+      {
+        id: "uskudar",
+        name: "Üsküdar",
+        x: 91.5,
+        y: 52,
+        lngLat: [29.0155, 41.0255],
+        mapZoom: 14.8,
+        image: istanbulUskudar,
+        veil: "#cfe3f7",
+        theme: {
+          ink: "#fffaf0",
+          muted: "#c9d9ea",
+          deep: "#24425e",
+          water: "#3f6f9e",
+          gold: "#e0a94f",
+          stone: "#cbb8a6",
+          red: "#b0473a"
+        },
+        history: ""
+      },
+      {
+        id: "bosphorus",
+        name: "Bosphore",
+        x: 77,
+        y: 30,
+        lngLat: [29.05, 41.09],
+        mapZoom: 11.2,
+        image: istanbulBosphorus,
+        veil: "#2f8fa0",
+        theme: {
+          ink: "#fbfdf8",
+          muted: "#cfe3ea",
+          deep: "#1d4f63",
+          water: "#2f8fa0",
+          gold: "#e6c45a",
+          stone: "#c7d6c0",
+          red: "#a0503a"
         },
         history: ""
       }
