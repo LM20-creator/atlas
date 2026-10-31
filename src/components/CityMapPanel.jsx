@@ -159,9 +159,8 @@ export default function CityMapPanel({ city, focus, onClose }) {
   }
 
   async function geocode(address) {
-    // TODO (chantier ajout d'adresses) : la ville est encore fixée à Istanbul.
     const query = new URLSearchParams({
-      q: `${address}, Istanbul, Türkiye`,
+      q: `${address}, ${city.name}, ${city.country}`,
       proximity: `${city.coordinates.lng},${city.coordinates.lat}`,
       limit: "1",
       language: "fr",
@@ -184,9 +183,8 @@ export default function CityMapPanel({ city, focus, onClose }) {
     setIsSaving(true);
     setNotice("");
 
+    let placeDraft = { ...draft, name: draft.name.trim(), address: draft.address.trim() };
     try {
-      let placeDraft = { ...draft, name: draft.name.trim(), address: draft.address.trim() };
-
       if (placeDraft.lng === null) {
         if (!placeDraft.address) throw new Error("missing-location");
         placeDraft = { ...placeDraft, ...(await geocode(placeDraft.address)) };
@@ -204,12 +202,9 @@ export default function CityMapPanel({ city, focus, onClose }) {
       cancelAdding();
       setNotice("Adresse ajoutée à la carte.");
     } catch (error) {
-      // TODO (chantier ajout d'adresses) : en local, toute erreur ajoute un lieu temporaire.
-      if (import.meta.env.DEV) {
-        setPlaces((current) => [
-          ...current,
-          { id: `preview-${Date.now()}`, ...draft, name: draft.name.trim(), address: draft.address.trim() }
-        ]);
+      // En local, il n'y a pas de serveur d'adresses : le lieu est ajouté temporairement (s'il a une position).
+      if (import.meta.env.DEV && placeDraft.lng !== null) {
+        setPlaces((current) => [...current, { id: `preview-${Date.now()}`, ...placeDraft }]);
         cancelAdding();
         setNotice("Adresse ajoutée pour cet aperçu. Elle ne sera pas conservée après actualisation.");
       } else if (error.message === "missing-location") {
