@@ -592,53 +592,6 @@ button {
   }
 }
 
-.capsule-view {
-  min-height: 100vh;
-  color: var(--theme-ink);
-  background: #07131c;
-}
-
-.capsule-stage {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-.atmosphere-wrap {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  overflow: hidden;
-  background: #102332;
-}
-
-.atmosphere-image {
-  width: 100%;
-  height: 100vh;
-  min-height: inherit;
-  display: block;
-  object-fit: cover;
-}
-
-.atmosphere-vignette {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(4, 13, 20, 0.55), rgba(4, 13, 20, 0.08) 23%, transparent 48%),
-    linear-gradient(0deg, rgba(4, 13, 20, 0.68), rgba(4, 13, 20, 0.16) 27%, transparent 54%),
-    radial-gradient(circle at center, transparent 58%, rgba(4, 13, 20, 0.2));
-}
-
-.marker-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  animation: capsule-fade-in 700ms ease both;
-  animation-delay: 220ms;
-}
-
 .capsule-topbar {
   position: absolute;
   inset: clamp(0.75rem, 2vw, 1.4rem) clamp(0.75rem, 2vw, 1.4rem) auto;
@@ -763,110 +716,6 @@ button {
   line-height: 1.35;
 }
 
-.map-marker {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.35rem;
-  height: 2.35rem;
-  padding: 0;
-  color: #fff4df;
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-  animation: marker-pop 520ms ease both;
-  animation-delay: 320ms;
-}
-
-.map-marker::before {
-  content: "";
-  position: absolute;
-  inset: 0.35rem;
-  background: rgba(198, 154, 69, 0.24);
-  border: 1px solid rgba(255, 244, 223, 0.28);
-  border-radius: 50%;
-  box-shadow: 0 0 1.2rem rgba(198, 154, 69, 0.3);
-  transform: scale(1);
-  transition:
-    transform 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.marker-dot {
-  position: relative;
-  z-index: 1;
-  width: 0.55rem;
-  height: 0.55rem;
-  background: var(--theme-gold);
-  border: 1px solid rgba(255, 244, 223, 0.86);
-  border-radius: 50%;
-  box-shadow: 0 0 0.8rem rgba(198, 154, 69, 0.55);
-}
-
-.marker-label {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 0.22rem);
-  max-width: 11rem;
-  padding: 0.38rem 0.58rem;
-  overflow: hidden;
-  color: #fff7e8;
-  background: rgba(7, 19, 28, 0.66);
-  border: 1px solid rgba(246, 234, 212, 0.22);
-  border-radius: 999px;
-  box-shadow: 0 0.65rem 1.75rem rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(14px);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-50%) translateY(0.25rem) scale(0.97);
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
-}
-
-.map-marker:hover,
-.map-marker:focus-visible,
-.map-marker.is-active {
-  outline: none;
-  transform: translate(-50%, -50%) scale(1.07);
-}
-
-.map-marker:hover::before,
-.map-marker:focus-visible::before {
-  background: rgba(198, 154, 69, 0.34);
-  box-shadow: 0 0 1.8rem rgba(198, 154, 69, 0.48);
-  transform: scale(1.18);
-}
-
-.map-marker:hover .marker-label,
-.map-marker:focus-visible .marker-label,
-.map-marker.is-active .marker-label {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-.map-marker.is-active::before {
-  background: rgba(111, 32, 36, 0.72);
-  border-color: rgba(198, 154, 69, 0.68);
-  box-shadow:
-    0 0 0 0.18rem rgba(198, 154, 69, 0.18),
-    0 0 1.9rem rgba(111, 32, 36, 0.62);
-  transform: scale(1.22);
-}
-
-.map-marker.is-active .marker-dot {
-  background: #fff4df;
-  border-color: var(--theme-gold);
-}
-
 .info-panel {
   position: absolute;
   right: clamp(1rem, 3vw, 2rem);
@@ -893,38 +742,10 @@ button {
   letter-spacing: 0;
 }
 
-.panel-image {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  display: block;
-  object-fit: cover;
-  margin: 0.2rem 0 0.8rem;
-  border: 1px solid rgba(246, 234, 212, 0.16);
-  border-radius: 8px;
-  box-shadow: 0 0.8rem 2.2rem rgba(0, 0, 0, 0.24);
-}
-
 .info-panel p {
   margin: 0;
   color: #d9ccb7;
   line-height: 1.55;
-}
-
-.panel-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.85rem;
-  color: var(--theme-ink);
-  font-size: 0.78rem;
-  font-weight: 750;
-  text-decoration: none;
-}
-
-.panel-link:hover,
-.panel-link:focus-visible {
-  color: var(--theme-gold);
-  outline: none;
 }
 
 .panel-kicker {
@@ -977,18 +798,6 @@ button {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes marker-pop {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.78);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -1575,19 +1384,6 @@ button {
     font-size: 0.98rem;
   }
 
-  .map-marker {
-    width: 44px;
-    height: 44px;
-  }
-
-  .marker-label {
-    display: none;
-  }
-
-  .marker-dot {
-    margin: auto;
-  }
-
   .info-panel {
     position: fixed;
     left: max(12px, env(safe-area-inset-left, 0px));
@@ -1606,11 +1402,6 @@ button {
     .info-panel {
       max-height: 55dvh;
     }
-  }
-
-  .panel-image {
-    aspect-ratio: 16 / 8.5;
-    margin-bottom: 0.7rem;
   }
 
   .panel-close {
@@ -1647,30 +1438,6 @@ button {
     max-height: min(32rem, calc(100vh - 6rem));
     overflow-y: auto;
   }
-
-  .capsule-view,
-  .capsule-stage,
-  .atmosphere-wrap {
-    min-height: 100vh;
-    height: 100vh;
-  }
-
-  .atmosphere-image {
-    height: 100vh;
-  }
-
-  @supports (height: 100dvh) {
-    .capsule-view,
-    .capsule-stage,
-    .atmosphere-wrap {
-      min-height: 100dvh;
-      height: 100dvh;
-    }
-
-    .atmosphere-image {
-      height: 100dvh;
-    }
-  }
 }
 
 @media (max-width: 880px) and (orientation: landscape) {
@@ -1704,19 +1471,10 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marker-layer,
   .capsule-heading,
-  .map-marker,
   .info-panel,
   .city-map-panel {
     animation: none;
-  }
-
-  .map-marker,
-  .map-marker:hover,
-  .map-marker:focus-visible,
-  .map-marker.is-active {
-    transition: none;
   }
 }
 

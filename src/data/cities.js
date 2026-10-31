@@ -1,9 +1,8 @@
 /**
  * Source unique des villes de l'atlas.
  *
- * - status "visited" : capsule disponible, badge débloqué.
- *     · avec `districts` : vue générale de la ville → quartiers ;
- *     · avec `points`    : une image + repères cliquables (ancien modèle, plus utilisé).
+ * - status "visited" : capsule disponible (vue générale de la ville → quartiers `districts`, éventuellement vide) ;
+ *   badge débloqué s'il y a une `badgeImage`.
  * - status "planned" : étape future, affichée sur la carte et dans les badges à débloquer.
  *
  * L'ordre du tableau = l'ordre des étapes sur la carte d'accueil et dans la galerie de badges.
@@ -23,6 +22,7 @@ import istanbulBadge from "../assets/badge-istanbul.webp";
 import florenceOverview from "../assets/florence/overview.webp";
 import florenceUffizi from "../assets/florence/uffizi.webp";
 import florenceBadge from "../assets/badge-florence.webp";
+import dublinOverview from "../assets/dublin/overview.webp";
 
 const MAPBOX_STYLE_URL = "https://api.mapbox.com/styles/v1/leomass/cmtcy1ssl002901s1c2vi29ab.html";
 
@@ -248,12 +248,28 @@ export const cities = [
   },
   {
     id: "dublin",
-    status: "planned",
+    status: "visited",
     name: "Dublin",
     country: "Irlande",
     subtitle: "Briques, pubs et horizons atlantiques",
     atlas: { x: 23.1, y: 26.8 },
-    coordinates: { lat: 53.3498, lng: -6.2603 }
+    coordinates: { lat: 53.3498, lng: -6.2603 },
+    // Vue générale stylisée (nuit, la Liffey vers la baie), aussi vignette sur l'accueil.
+    capsuleImage: dublinOverview,
+    mapStyleUrl: MAPBOX_STYLE_URL,
+    mapZoom: 13.2,
+    // Palette de la vue générale (nuit bleue, lumières dorées).
+    theme: {
+      ink: "#fff1dc",
+      muted: "#b9c0cc",
+      deep: "#141d2e",
+      water: "#2e4a6b",
+      gold: "#f2b24c",
+      stone: "#a08670",
+      red: "#8a3a2a"
+    },
+    // Quartiers à venir.
+    districts: []
   },
   {
     id: "barcelona",

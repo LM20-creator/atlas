@@ -152,7 +152,10 @@ export default function CityExplorer({ city, onBack, arriving = false }) {
   const districtIndex = district ? districts.indexOf(district) : -1;
   const previous = district ? districts[(districtIndex - 1 + districts.length) % districts.length] : null;
   const next = district ? districts[(districtIndex + 1) % districts.length] : null;
-  const districtsCenterX = districts.reduce((sum, item) => sum + item.x, 0) / districts.length;
+  // Sans quartier (ville tout juste ajoutée) : cadrage au centre.
+  const districtsCenterX = districts.length
+    ? districts.reduce((sum, item) => sum + item.x, 0) / districts.length
+    : 50;
   const zoomStyle = zoomOrigin ? { "--zoom-x": `${zoomOrigin.x}%`, "--zoom-y": `${zoomOrigin.y}%` } : undefined;
 
   return (
@@ -291,7 +294,7 @@ export default function CityExplorer({ city, onBack, arriving = false }) {
             <p>{city.country}</p>
             <h1>{city.name}</h1>
           </div>
-          {showHint && (
+          {showHint && districts.length > 0 && (
             <p className="district-hint" role="status">
               {isTouchDevice() ? "Touchez un quartier pour y entrer" : "Cliquez sur un quartier pour y entrer"}
             </p>
