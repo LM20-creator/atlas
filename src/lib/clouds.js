@@ -48,8 +48,9 @@ const smoothstep = (lo, hi, value) => {
  *   scale       : taille des nuages (plus grand = nuages plus petits)
  *   lo / hi     : seuils de densité (plus resserrés = bords plus nets)
  *   floor       : opacité minimale partout (voile de fond)
+ *   north       : voile ajouté en haut de l'image (nord), qui s'efface vers le milieu
  */
-function renderLayer({ width, height, seed, scale, lo, hi, floor }) {
+function renderLayer({ width, height, seed, scale, lo, hi, floor, north = 0 }) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -65,7 +66,8 @@ function renderLayer({ width, height, seed, scale, lo, hi, floor }) {
       // Relief : on compare avec un point décalé vers la lumière (haut gauche).
       const lit = fbm(nx - 0.06, ny - 0.09, seed);
       const light = Math.min(1, Math.max(0.74, 0.9 + (density - lit) * 2.2));
-      const alpha = floor + (1 - floor) * smoothstep(lo, hi, density);
+      const northFloor = floor + north * (1 - smoothstep(0, 0.6, y / height));
+      const alpha = northFloor + (1 - northFloor) * smoothstep(lo, hi, density);
       const index = (y * width + x) * 4;
       image.data[index] = 236 * light + 16;
       image.data[index + 1] = 239 * light + 14;
@@ -83,7 +85,7 @@ let cachedLayers = null;
 export function getCloudLayers() {
   if (!cachedLayers) {
     cachedLayers = {
-      base: renderLayer({ width: 480, height: 270, seed: 3, scale: 3.1, lo: 0.46, hi: 0.72, floor: 0.18 }),
+      base: renderLayer({ width: 480, height: 270, seed: 3, scale: 3.1, lo: 0.45, hi: 0.71, floor: 0.22, north: 0.22 }),
       puffs: renderLayer({ width: 640, height: 360, seed: 11, scale: 5.4, lo: 0.6, hi: 0.8, floor: 0 })
     };
   }
@@ -108,6 +110,15 @@ export function renderClearingsMask(holes, radius, shape) {
     context.fillStyle = "#000";
     context.fillRect(0, 0, width, height);
   }
+  // Plus dense au nord (haut de l'image), plus léger vers la Méditerranée.
+  context.globalCompositeOperation = "destination-in";
+  const northToSouth = context.createLinearGradient(0, 0, 0, height);
+  northToSouth.addColorStop(0, "rgba(0,0,0,1)");
+  northToSouth.addColorStop(0.3, "rgba(0,0,0,1)");
+  northToSouth.addColorStop(1, "rgba(0,0,0,0.72)");
+  context.fillStyle = northToSouth;
+  context.fillRect(0, 0, width, height);
+
   context.globalCompositeOperation = "destination-out";
 
   for (const hole of holes) {

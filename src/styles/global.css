@@ -2351,7 +2351,7 @@ button {
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
-  opacity: 0.82;
+  opacity: 0.9;
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   animation: cloud-fade-in 1.4s ease both;
@@ -2363,7 +2363,7 @@ button {
   }
 
   to {
-    opacity: 0.82;
+    opacity: 0.9;
   }
 }
 
