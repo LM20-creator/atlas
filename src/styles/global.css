@@ -2351,16 +2351,27 @@ button {
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
+  opacity: 0.82;
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
-  animation: capsule-fade-in 1.4s ease both;
+  animation: cloud-fade-in 1.4s ease both;
+}
+
+@keyframes cloud-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.82;
+  }
 }
 
 .cloud-layer {
   position: absolute;
   inset: -8%;
   background-size: 100% 100%;
-  filter: blur(7px);
+  filter: blur(3px);
   will-change: transform;
 }
 
@@ -2369,7 +2380,7 @@ button {
 }
 
 .cloud-layer-puffs {
-  opacity: 0.92;
+  opacity: 0.7;
   animation: cloud-drift-puffs 80s ease-in-out infinite alternate;
 }
 

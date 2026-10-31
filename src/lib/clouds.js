@@ -83,26 +83,31 @@ let cachedLayers = null;
 export function getCloudLayers() {
   if (!cachedLayers) {
     cachedLayers = {
-      base: renderLayer({ width: 480, height: 270, seed: 3, scale: 3.1, lo: 0.4, hi: 0.62, floor: 0.8 }),
-      puffs: renderLayer({ width: 640, height: 360, seed: 11, scale: 5.4, lo: 0.5, hi: 0.68, floor: 0 })
+      base: renderLayer({ width: 480, height: 270, seed: 3, scale: 3.1, lo: 0.46, hi: 0.72, floor: 0.18 }),
+      puffs: renderLayer({ width: 640, height: 360, seed: 11, scale: 5.4, lo: 0.6, hi: 0.8, floor: 0 })
     };
   }
   return cachedLayers;
 }
 
 /**
- * Masque des éclaircies : opaque partout, troué en douceur autour de chaque position (x / y en %).
+ * Masque des nuages : opaque là où l'image est opaque (`shape`, facultatif : la Terre sans le ciel),
+ * entièrement dégagé autour de chaque position (x / y en %), avec un bord fondu.
  * `radius` en fraction de la largeur de l'image.
  */
-export function renderClearingsMask(holes, radius) {
-  const width = 320;
-  const height = 180;
+export function renderClearingsMask(holes, radius, shape) {
+  const width = 480;
+  const height = 270;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext("2d");
-  context.fillStyle = "#000";
-  context.fillRect(0, 0, width, height);
+  if (shape) {
+    context.drawImage(shape, 0, 0, width, height);
+  } else {
+    context.fillStyle = "#000";
+    context.fillRect(0, 0, width, height);
+  }
   context.globalCompositeOperation = "destination-out";
 
   for (const hole of holes) {
@@ -111,7 +116,7 @@ export function renderClearingsMask(holes, radius) {
     const r = (hole.radius ?? radius) * width;
     const gradient = context.createRadialGradient(cx, cy, 0, cx, cy, r);
     gradient.addColorStop(0, "rgba(0,0,0,1)");
-    gradient.addColorStop(0.45, "rgba(0,0,0,0.95)");
+    gradient.addColorStop(0.65, "rgba(0,0,0,1)"); // cœur entièrement dégagé
     gradient.addColorStop(1, "rgba(0,0,0,0)");
     context.fillStyle = gradient;
     context.fillRect(cx - r, cy - r, r * 2, r * 2);

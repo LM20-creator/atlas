@@ -1,6 +1,6 @@
 import { Medal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import atlasImage from "../assets/atlas-europe-light.webp";
+import atlasImage from "../assets/atlas/europe.webp";
 import homeLogoUrl from "../assets/home-logo.webp";
 import { cities, isVisited } from "../data/cities.js";
 import { themeVariables } from "../lib/theme.js";
@@ -31,7 +31,8 @@ const ATLAS_THEME = {
 const mappedCities = cities.filter((city) => city.atlas);
 const visitedCities = mappedCities.filter(isVisited);
 const plannedCities = mappedCities.filter((city) => !isVisited(city));
-const visitedCenterX = visitedCities.reduce((sum, city) => sum + city.atlas.x, 0) / (visitedCities.length || 1);
+// Écran portrait : cadrage de départ sur la dernière ville visitée (les villes sont trop éloignées pour tenir ensemble).
+const startFocusX = visitedCities.at(-1)?.atlas.x ?? 50;
 
 /**
  * Accueil : l'Europe sous les nuages. Les villes visitées sont des éclaircies avec un point lumineux ;
@@ -104,10 +105,10 @@ export default function AtlasHome({ onSelectCity, onOpenBadges, returningFrom })
         image={atlasImage}
         className="scene-city scene-atlas"
         style={zoomStyle}
-        focusX={zoomOrigin?.x ?? visitedCenterX}
+        focusX={zoomOrigin?.x ?? startFocusX}
         onClick={() => setSelectedId(null)}
       >
-        <CloudCover clearings={visitedCities.map((city) => city.atlas)} />
+        <CloudCover clearings={visitedCities.map((city) => city.atlas)} shape={atlasImage} />
 
         {plannedCities.map((city) => (
           <span
