@@ -66,7 +66,7 @@ function renderLayer({ width, height, seed, scale, lo, hi, floor, north = 0 }) {
       // Relief : on compare avec un point décalé vers la lumière (haut gauche).
       const lit = fbm(nx - 0.06, ny - 0.09, seed);
       const light = Math.min(1, Math.max(0.74, 0.9 + (density - lit) * 2.2));
-      const northFloor = floor + north * (1 - smoothstep(0, 0.6, y / height));
+      const northFloor = floor + north * (1 - smoothstep(0.05, 0.62, y / height));
       const alpha = northFloor + (1 - northFloor) * smoothstep(lo, hi, density);
       const index = (y * width + x) * 4;
       image.data[index] = 236 * light + 16;
@@ -85,8 +85,8 @@ let cachedLayers = null;
 export function getCloudLayers() {
   if (!cachedLayers) {
     cachedLayers = {
-      base: renderLayer({ width: 480, height: 270, seed: 3, scale: 3.1, lo: 0.45, hi: 0.71, floor: 0.22, north: 0.22 }),
-      puffs: renderLayer({ width: 640, height: 360, seed: 11, scale: 5.4, lo: 0.6, hi: 0.8, floor: 0 })
+      base: renderLayer({ width: 480, height: 270, seed: 3, scale: 3.1, lo: 0.45, hi: 0.71, floor: 0.22, north: 0.6 }),
+      puffs: renderLayer({ width: 640, height: 360, seed: 11, scale: 5.4, lo: 0.6, hi: 0.8, floor: 0, north: 0.35 })
     };
   }
   return cachedLayers;
