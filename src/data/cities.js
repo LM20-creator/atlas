@@ -2,8 +2,8 @@
  * Source unique des villes de l'atlas.
  *
  * - status "visited" : capsule disponible, badge débloqué.
- *     · avec `districts` : vue générale de la ville → quartiers (nouveau modèle) ;
- *     · avec `points`    : une image + repères cliquables (ancien modèle, Florence en attendant).
+ *     · avec `districts` : vue générale de la ville → quartiers ;
+ *     · avec `points`    : une image + repères cliquables (ancien modèle, plus utilisé).
  * - status "planned" : étape future, affichée sur la carte et dans les badges à débloquer.
  *
  * L'ordre du tableau = l'ordre des étapes sur la carte d'accueil et dans la galerie de badges.
@@ -16,7 +16,8 @@ import istanbulGalataBridge from "../assets/istanbul/galata-bridge.webp";
 import istanbulUskudar from "../assets/istanbul/uskudar.webp";
 import istanbulBosphorus from "../assets/istanbul/bosphorus.webp";
 import istanbulBadge from "../assets/badge-istanbul.webp";
-import florenceCapsule from "../assets/florence-capsule.webp";
+import florenceOverview from "../assets/florence/overview.webp";
+import florenceUffizi from "../assets/florence/uffizi.webp";
 import florenceBadge from "../assets/badge-florence.webp";
 
 /** Point de départ de tous les trajets sur la carte d'accueil. */
@@ -36,69 +37,43 @@ export const cities = [
     country: "Italie",
     subtitle: "Renaissance, pierre blonde et collines",
     coordinates: { lat: 43.7696, lng: 11.2558 },
-    capsuleImage: florenceCapsule,
+    // Vue générale stylisée (depuis le Piazzale Michelangelo, en recul), aussi vignette sur l'accueil.
+    // Référence Google Earth : @43.7718,11.2560,50a,2800d,35y,318h,77t,0r
+    capsuleImage: florenceOverview,
     badgeImage: florenceBadge,
     mapStyleUrl: MAPBOX_STYLE_URL,
-    mapZoom: 12.4,
+    mapZoom: 13.4,
+    // Palette de la vue générale (plein soleil, terre cuite, Arno vert).
     theme: {
-      ink: "#fff0d5",
-      muted: "#bdc2a9",
-      deep: "#2a211b",
-      water: "#587b80",
-      gold: "#c89550",
-      stone: "#d4b27f",
-      red: "#7b3028"
+      ink: "#fff6e6",
+      muted: "#cfc6ae",
+      deep: "#2e3324",
+      water: "#5e8f8e",
+      gold: "#d9a24f",
+      stone: "#e0c08f",
+      red: "#b5532f"
     },
-    intro:
-      "Une capsule florentine guidée par l'Arno, les toits de terre cuite et les grands repères de la Renaissance.",
-    // x / y : position du repère en % de l'image de capsule.
-    points: [
+    // Quartiers visités (mêmes champs qu'Istanbul, voir plus bas).
+    districts: [
       {
-        id: "duomo",
-        title: "Cathédrale Santa Maria del Fiore",
-        type: "Cathédrale",
-        x: 61,
-        y: 39,
-        text:
-          "Le Duomo domine Florence par l'immense coupole rouge conçue par Filippo Brunelleschi et ses façades de marbre polychrome."
-      },
-      {
-        id: "palazzo-vecchio",
-        title: "Palazzo Vecchio",
-        type: "Palais",
-        x: 37,
-        y: 42,
-        url: "https://cultura.comune.fi.it/pagina/musei-civici-fiorentini/museo-di-palazzo-vecchio",
-        text:
-          "Ce palais-forteresse du XIVe siècle domine la Piazza della Signoria. Il abrite le Salone dei Cinquecento et la tour d'Arnolfo."
-      },
-      {
-        id: "ponte-vecchio",
-        title: "Ponte Vecchio",
-        type: "Pont",
-        x: 31,
-        y: 60,
-        text:
-          "Le plus ancien et célèbre pont en pierre de la ville, reconnaissable à ses échoppes de joailliers construites à flanc d'arche."
-      },
-      {
-        id: "santa-croce",
-        title: "Basilique Santa Croce",
-        type: "Basilique",
-        x: 82,
-        y: 51,
-        url: "https://www.santacroceopera.it/",
-        text:
-          "La plus grande église franciscaine au monde est surnommée le Panthéon des gloires italiennes : Michel-Ange, Galilée et Machiavel y reposent."
-      },
-      {
-        id: "piazzale-michelangelo",
-        title: "Piazzale Michelangelo",
-        type: "Belvédère",
-        x: 75,
-        y: 79,
-        text:
-          "Sur une colline au sud de l'Arno, cette place offre le panorama le plus spectaculaire et emblématique sur toute la ville."
+        id: "uffizi",
+        name: "Palais des Offices",
+        x: 41.5,
+        y: 42.5,
+        lngLat: [11.2553, 43.7678],
+        mapZoom: 16,
+        image: florenceUffizi,
+        veil: "#4a3426",
+        theme: {
+          ink: "#fff1e0",
+          muted: "#d2c0a8",
+          deep: "#4a3426",
+          water: "#5f7a8c",
+          gold: "#d9a54a",
+          stone: "#c9a882",
+          red: "#a3302a"
+        },
+        history: ""
       }
     ]
   },

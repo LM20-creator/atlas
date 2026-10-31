@@ -38,5 +38,9 @@ id, nom, position du point sur la vue ville (% x/y), image, palette, centre/zoom
 - Données : `districts` dans `src/data/cities.js` (x, y, lngLat, mapZoom, image, veil, theme, history).
 - Ajouter un quartier = une entrée dans `districts` + son image dans `src/assets/<ville>/`.
 
+## Villes en place
+- Istanbul : 6 quartiers.
+- Florence : vue générale (référence Google Earth `@43.7718,11.2560,50a,2800d,35y,318h,77t,0r`, depuis le Piazzale Michelangelo en recul) + Palais des Offices.
+
 ## Plus tard
 - URL par vue (/istanbul/galata).
