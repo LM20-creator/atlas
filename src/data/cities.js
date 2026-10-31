@@ -7,6 +7,10 @@
  * - status "planned" : étape future, affichée sur la carte et dans les badges à débloquer.
  *
  * L'ordre du tableau = l'ordre des étapes sur la carte d'accueil et dans la galerie de badges.
+ *
+ * `atlas` : position de la ville en % de l'image d'accueil (src/assets/atlas-europe-light.webp).
+ *   Ville visitée : point lumineux + éclaircie dans les nuages ; ville prévue : simple lueur.
+ *   À recaler si l'image d'accueil change.
  */
 import istanbulOverview from "../assets/istanbul/overview.webp";
 import istanbulGalata from "../assets/istanbul/galata.webp";
@@ -36,6 +40,7 @@ export const cities = [
     name: "Florence",
     country: "Italie",
     subtitle: "Renaissance, pierre blonde et collines",
+    atlas: { x: 34.7, y: 58.1 },
     coordinates: { lat: 43.7696, lng: 11.2558 },
     // Vue générale stylisée (depuis le Piazzale Michelangelo, en recul), aussi vignette sur l'accueil.
     // Référence Google Earth : @43.7718,11.2560,50a,2800d,35y,318h,77t,0r
@@ -83,6 +88,7 @@ export const cities = [
     name: "Istanbul",
     country: "Turquie",
     subtitle: "Bosphore, empires et passages",
+    atlas: { x: 61.2, y: 65.0 },
     coordinates: { lat: 41.0082, lng: 28.9784 },
     // Vue générale stylisée de la ville (aussi utilisée comme vignette sur l'accueil).
     capsuleImage: istanbulOverview,
@@ -244,6 +250,7 @@ export const cities = [
     name: "Rome",
     country: "Italie",
     subtitle: "Ruines, places et lumière romaine",
+    atlas: { x: 36.6, y: 62.7 },
     coordinates: { lat: 41.9028, lng: 12.4964 }
   },
   {
@@ -252,6 +259,7 @@ export const cities = [
     name: "Dublin",
     country: "Irlande",
     subtitle: "Briques, pubs et horizons atlantiques",
+    atlas: { x: 8.6, y: 34.1 },
     coordinates: { lat: 53.3498, lng: -6.2603 }
   },
   {
@@ -260,6 +268,7 @@ export const cities = [
     name: "Barcelone",
     country: "Espagne",
     subtitle: "Modernisme, Méditerranée et quartiers vivants",
+    atlas: { x: 21.2, y: 64.0 },
     coordinates: { lat: 41.3874, lng: 2.1686 }
   },
   {
@@ -268,6 +277,7 @@ export const cities = [
     name: "Zagreb",
     country: "Croatie",
     subtitle: "Façades, passages et douceur continentale",
+    atlas: { x: 41.8, y: 53.0 },
     coordinates: { lat: 45.815, lng: 15.9819 }
   }
 ];

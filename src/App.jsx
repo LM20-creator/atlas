@@ -13,6 +13,8 @@ const IstanbulCameraLab = import.meta.env.DEV
 export default function App() {
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [activePage, setActivePage] = useState("atlas");
+  // Ville qu'on vient de quitter : l'accueil se dézoome depuis elle.
+  const [returningFrom, setReturningFrom] = useState(null);
   const selectedCity = getCity(selectedCityId);
 
   if (IstanbulCameraLab && window.location.pathname === "/istanbul-camera-lab") {
@@ -26,13 +28,28 @@ export default function App() {
   return (
     <div className="app-shell">
       {selectedCity?.districts ? (
-        <CityExplorer city={selectedCity} onBack={() => setSelectedCityId(null)} />
+        <CityExplorer
+          key={selectedCity.id}
+          city={selectedCity}
+          arriving
+          onBack={() => {
+            setReturningFrom(selectedCity.id);
+            setSelectedCityId(null);
+          }}
+        />
       ) : selectedCity ? (
         <CityCapsule city={selectedCity} onBack={() => setSelectedCityId(null)} />
       ) : activePage === "badges" ? (
         <BadgeGallery onBack={() => setActivePage("atlas")} />
       ) : (
-        <AtlasHome onSelectCity={setSelectedCityId} onOpenBadges={() => setActivePage("badges")} />
+        <AtlasHome
+          returningFrom={returningFrom}
+          onSelectCity={setSelectedCityId}
+          onOpenBadges={() => {
+            setReturningFrom(null);
+            setActivePage("badges");
+          }}
+        />
       )}
     </div>
   );

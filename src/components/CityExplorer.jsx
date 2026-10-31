@@ -1,72 +1,58 @@
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Images, Map, X } from "lucide-react";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { themeVariables } from "../lib/theme.js";
+import {
+  ATLAS_VEIL,
+  REVEAL_MS,
+  VEIL_MS,
+  ZOOM_MS,
+  isTouchDevice,
+  preload,
+  prefersReducedMotion,
+  readFlag,
+  setFlag,
+  wait
+} from "../lib/transitions.js";
+import CoverScene from "./CoverScene.jsx";
 
 const CityMapPanel = lazy(() => import("./CityMapPanel.jsx"));
 
 const HINT_STORAGE_KEY = "atlas-prive:district-hint-seen";
 
-// Durées des transitions (ms) — à garder en phase avec global.css (section « Ville & quartiers »).
-const ZOOM_MS = 700; // zoom vers le quartier, le voile monte pendant la seconde moitié
-const VEIL_MS = 380; // montée du voile seul (retour ville, quartier → quartier)
-const REVEAL_MS = 750; // disparition du voile
-
-const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-
-function preload(src) {
-  const image = new Image();
-  image.src = src;
-  return image.decode ? image.decode().catch(() => {}) : Promise.resolve();
-}
-
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const isTouchDevice = () => window.matchMedia("(hover: none)").matches;
-
-function readHintSeen() {
-  try {
-    return window.localStorage.getItem(HINT_STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
 /**
- * Image plein écran recadrée « cover ». Les enfants sont positionnés en % de l'image
- * réellement affichée : les points restent au bon endroit quel que soit le format d'écran.
- * Si l'image déborde en largeur (écran portrait), la scène défile horizontalement
- * et se centre au départ sur `focusX` (% de la largeur de l'image).
+ * `arriving` : on vient de l'atlas → la ville apparaît derrière le voile de la ville.
+ * `onBack`   : appelé une fois le voile de l'atlas monté.
  */
-function CoverScene({ image, className = "", style, focusX, children, onClick }) {
-  const sceneRef = useRef(null);
-
-  useLayoutEffect(() => {
-    const scene = sceneRef.current;
-    if (!scene || focusX === undefined) return;
-    const coverWidth = scene.firstElementChild.offsetWidth;
-    scene.scrollLeft = (coverWidth * focusX) / 100 - scene.clientWidth / 2;
-  }, [focusX]);
-
-  return (
-    <div ref={sceneRef} className={`scene ${className}`} style={style} onClick={onClick}>
-      <div className="scene-cover">
-        <img className="scene-image" src={image} alt="" decoding="async" draggable="false" />
-        {children}
-      </div>
-    </div>
-  );
-}
-
-export default function CityExplorer({ city, onBack }) {
+export default function CityExplorer({ city, onBack, arriving = false }) {
   const districts = city.districts;
   const [districtId, setDistrictId] = useState(null);
-  const [phase, setPhase] = useState("idle"); // idle | zoom | veil | reveal | unzoom
-  const [veil, setVeil] = useState({ color: city.theme.deep, label: "" });
+  const [phase, setPhase] = useState(arriving ? "veil" : "idle"); // idle | zoom | veil | reveal | unzoom
+  const [veil, setVeil] = useState({ color: city.theme.deep, label: arriving ? city.name : "" });
   const [zoomOrigin, setZoomOrigin] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
-  const [showHint, setShowHint] = useState(() => !readHintSeen());
-  const busy = useRef(false);
+  const [showHint, setShowHint] = useState(() => !readFlag(HINT_STORAGE_KEY));
+  const busy = useRef(arriving);
+
+  // Arrivée depuis l'atlas : le voile de la ville s'efface.
+  useEffect(() => {
+    if (!arriving) return undefined;
+    let cancelled = false;
+    (async () => {
+      await wait(40);
+      if (cancelled) return;
+      setPhase("reveal");
+      await wait(REVEAL_MS);
+      if (cancelled) return;
+      setPhase("idle");
+      busy.current = false;
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const district = districts.find((item) => item.id === districtId) ?? null;
   const theme = district?.theme ?? city.theme;
@@ -89,11 +75,7 @@ export default function CityExplorer({ city, onBack }) {
   function enterDistrict(target) {
     if (showHint) {
       setShowHint(false);
-      try {
-        window.localStorage.setItem(HINT_STORAGE_KEY, "1");
-      } catch {
-        /* navigation privée : l'indication réapparaîtra, sans gravité */
-      }
+      setFlag(HINT_STORAGE_KEY);
     }
 
     runTransition(async (reduced) => {
@@ -131,6 +113,16 @@ export default function CityExplorer({ city, onBack }) {
       setZoomOrigin(from ? { x: from.x, y: from.y } : null);
       setPhase(reduced ? "reveal" : "unzoom");
       await wait(REVEAL_MS);
+    });
+  }
+
+  /** Ville ou quartier → atlas : voile de l'atlas, puis l'accueil se dézoome depuis la ville. */
+  function leaveToAtlas() {
+    runTransition(async () => {
+      setVeil({ color: ATLAS_VEIL, label: "" });
+      setPhase("veil");
+      await wait(VEIL_MS);
+      onBack();
     });
   }
 
@@ -202,7 +194,7 @@ export default function CityExplorer({ city, onBack }) {
       {district ? (
         <div className="capsule-topbar">
           <nav className="breadcrumb" aria-label="Fil d’Ariane">
-            <button type="button" onClick={onBack}>
+            <button type="button" onClick={leaveToAtlas}>
               Atlas
             </button>
             <span aria-hidden="true">›</span>
@@ -240,7 +232,7 @@ export default function CityExplorer({ city, onBack }) {
       ) : (
         <div className="capsule-topbar">
           <div className="capsule-brand">
-            <button className="floating-button" type="button" onClick={onBack} aria-label="Retour à l’atlas">
+            <button className="floating-button" type="button" onClick={leaveToAtlas} aria-label="Retour à l’atlas">
               <ArrowLeft size={17} />
               <span>Atlas</span>
             </button>

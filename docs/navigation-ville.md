@@ -3,6 +3,15 @@
 ## Niveaux
 Atlas › Ville (vue stylisée générale) › Quartier (vue détaillée)
 
+## Accueil (Atlas)
+- Image de l'Europe plein écran (pour l'instant la carte claire ; à remplacer par une vue Google Earth stylisée,
+  référence `@46,13,0a,4100000d,35y,0h,40t,0r`), sous une couche de nuages générée dans le navigateur.
+- Ville visitée = éclaircie dans les nuages + point lumineux (même comportement que les quartiers).
+- Ville prévue = simple lueur sous les nuages, sans nom ni clic. Plus de trajets depuis Paris.
+- Clic → zoom vers la ville → voile de la ville → vue générale de la ville. Retour : voile bleu nuit → l'Europe se dézoome depuis la ville.
+- Positions : champ `atlas: { x, y }` de chaque ville dans `cities.js` (en % de l'image d'accueil), à recaler si l'image change.
+- Code : `AtlasHome.jsx`, `CloudCover.jsx` + `lib/clouds.js` (nuages, éclaircies), `lib/transitions.js` (durées et outils partagés), `CoverScene.jsx`.
+
 ## Vue ville
 - Image stylisée générale, plein écran, monuments non mis en avant.
 - Uniquement les quartiers visités sont cliquables (pas de « à venir »).

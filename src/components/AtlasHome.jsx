@@ -1,167 +1,169 @@
-import { ArrowUpRight, Medal } from "lucide-react";
-import { useState } from "react";
-import atlasMapUrl from "../assets/atlas-europe-light.webp";
+import { Medal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import atlasImage from "../assets/atlas-europe-light.webp";
 import homeLogoUrl from "../assets/home-logo.webp";
-import { cities, isVisited, origin } from "../data/cities.js";
+import { cities, isVisited } from "../data/cities.js";
+import { themeVariables } from "../lib/theme.js";
+import {
+  ATLAS_VEIL,
+  REVEAL_MS,
+  VEIL_MS,
+  ZOOM_MS,
+  isTouchDevice,
+  preload,
+  prefersReducedMotion,
+  readFlag,
+  setFlag,
+  wait
+} from "../lib/transitions.js";
+import CloudCover from "./CloudCover.jsx";
+import CoverScene from "./CoverScene.jsx";
 
-// Dimensions du repère SVG et emprise géographique de l'image atlas-europe-light
-// (projection équirectangulaire simple : longitude → x, latitude → y).
-const MAP_WIDTH = 1000;
-const MAP_HEIGHT = 562.5;
-const MAP_BOUNDS = { west: -12, east: 55, north: 67, south: 27 };
+const HINT_STORAGE_KEY = "atlas-prive:city-hint-seen";
 
-function project({ lat, lng }) {
-  return {
-    x: ((lng - MAP_BOUNDS.west) / (MAP_BOUNDS.east - MAP_BOUNDS.west)) * MAP_WIDTH,
-    y: ((MAP_BOUNDS.north - lat) / (MAP_BOUNDS.north - MAP_BOUNDS.south)) * MAP_HEIGHT
-  };
-}
+const ATLAS_THEME = {
+  ink: "#fff6e6",
+  muted: "#d6d2c6",
+  deep: ATLAS_VEIL,
+  gold: "#e0ad5a"
+};
 
-/** Courbe légèrement bombée entre deux points. */
-function arcPath(from, to) {
-  const controlX = (from.x + to.x) / 2;
-  const controlY = Math.min(from.y, to.y) - 21;
-  return `M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`;
-}
+const mappedCities = cities.filter((city) => city.atlas);
+const visitedCities = mappedCities.filter(isVisited);
+const plannedCities = mappedCities.filter((city) => !isVisited(city));
+const visitedCenterX = visitedCities.reduce((sum, city) => sum + city.atlas.x, 0) / (visitedCities.length || 1);
 
-/** Position en % pour les boutons HTML superposés au SVG. */
-function percentPosition({ x, y }) {
-  return { "--city-x": `${(x / MAP_WIDTH) * 100}%`, "--city-y": `${(y / MAP_HEIGHT) * 100}%` };
-}
+/**
+ * Accueil : l'Europe sous les nuages. Les villes visitées sont des éclaircies avec un point lumineux ;
+ * un clic zoome vers la ville, puis le voile de la ville fait la transition (comme ville → quartier).
+ * `returningFrom` : id de la ville qu'on vient de quitter → l'atlas se dézoome depuis elle.
+ */
+export default function AtlasHome({ onSelectCity, onOpenBadges, returningFrom }) {
+  const returning = mappedCities.find((city) => city.id === returningFrom) ?? null;
+  const [phase, setPhase] = useState(returning ? "veil" : "idle"); // idle | zoom | veil | reveal | unzoom
+  const [veil, setVeil] = useState({ color: ATLAS_VEIL, label: "" });
+  const [zoomOrigin, setZoomOrigin] = useState(returning ? returning.atlas : null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [showHint, setShowHint] = useState(() => !readFlag(HINT_STORAGE_KEY));
+  const busy = useRef(Boolean(returning));
 
-const originPoint = project(origin.coordinates);
-const routePoints = cities.map((city) => ({ city, ...project(city.coordinates) }));
-const visitedPoints = routePoints.filter(({ city }) => isVisited(city));
+  // Retour depuis une ville : le voile s'efface pendant que l'Europe se dézoome.
+  useEffect(() => {
+    if (!returning) return undefined;
+    let cancelled = false;
+    (async () => {
+      await wait(40);
+      if (cancelled) return;
+      setPhase(prefersReducedMotion() ? "reveal" : "unzoom");
+      await wait(REVEAL_MS);
+      if (cancelled) return;
+      setPhase("idle");
+      busy.current = false;
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-export default function AtlasHome({ onSelectCity, onOpenBadges }) {
-  const [activeCityId, setActiveCityId] = useState("istanbul");
-  const activeCity = cities.find((city) => city.id === activeCityId) ?? cities[0];
-  const canOpen = isVisited(activeCity);
+  function enterCity(city) {
+    if (busy.current) return;
+    busy.current = true;
+    setSelectedId(null);
+    if (showHint) {
+      setShowHint(false);
+      setFlag(HINT_STORAGE_KEY);
+    }
+
+    (async () => {
+      const reduced = prefersReducedMotion();
+      setVeil({ color: city.theme.deep, label: city.name });
+      setZoomOrigin(city.atlas);
+      setPhase(reduced ? "veil" : "zoom");
+      await Promise.all([wait(reduced ? VEIL_MS : ZOOM_MS), preload(city.capsuleImage)]);
+      onSelectCity(city.id);
+    })();
+  }
+
+  function handlePointClick(event, city) {
+    event.stopPropagation();
+    if (busy.current) return;
+    // Mobile : 1er toucher = sélection (le nom apparaît), 2e toucher = entrée.
+    if (isTouchDevice() && selectedId !== city.id) {
+      setSelectedId(city.id);
+      return;
+    }
+    enterCity(city);
+  }
+
+  const zoomStyle = zoomOrigin ? { "--zoom-x": `${zoomOrigin.x}%`, "--zoom-y": `${zoomOrigin.y}%` } : undefined;
 
   return (
-    <main className="atlas-home">
-      <div className="atlas-home-tools">
-        <button className="badges-button" type="button" onClick={onOpenBadges}>
-          <Medal size={16} strokeWidth={1.7} />
-          <span>Mes badges</span>
-        </button>
-        <img className="atlas-home-logo" src={homeLogoUrl} alt="" aria-hidden="true" decoding="async" />
+    <main className={`city-explorer atlas-explorer phase-${phase}`} style={themeVariables(ATLAS_THEME)}>
+      <CoverScene
+        image={atlasImage}
+        className="scene-city scene-atlas"
+        style={zoomStyle}
+        focusX={zoomOrigin?.x ?? visitedCenterX}
+        onClick={() => setSelectedId(null)}
+      >
+        <CloudCover clearings={visitedCities.map((city) => city.atlas)} />
+
+        {plannedCities.map((city) => (
+          <span
+            key={city.id}
+            className="atlas-glow"
+            style={{ left: `${city.atlas.x}%`, top: `${city.atlas.y}%` }}
+            aria-hidden="true"
+          />
+        ))}
+
+        {visitedCities.map((city) => (
+          <button
+            key={city.id}
+            type="button"
+            className={`district-point${city.atlas.x > 80 ? " is-label-left" : ""}${
+              selectedId === city.id ? " is-selected" : ""
+            }`}
+            style={{ left: `${city.atlas.x}%`, top: `${city.atlas.y}%`, "--point-color": city.theme.gold }}
+            onClick={(event) => handlePointClick(event, city)}
+            aria-label={`Entrer dans ${city.name}`}
+          >
+            <span className="district-point-dot" aria-hidden="true" />
+            <span className="district-point-label">{city.name}</span>
+          </button>
+        ))}
+      </CoverScene>
+
+      <div className="scene-vignette" aria-hidden="true" />
+
+      <div className="capsule-topbar">
+        <div className="capsule-brand">
+          <img className="capsule-logo" src={homeLogoUrl} alt="" aria-hidden="true" decoding="async" />
+        </div>
+        <div className="floating-actions">
+          <button className="floating-action" type="button" onClick={onOpenBadges}>
+            <Medal size={16} strokeWidth={1.7} />
+            <span>Mes badges</span>
+          </button>
+        </div>
       </div>
 
-      <header className="atlas-copy">
-        <div>
-          <p className="eyebrow">Carnet d’atmosphères</p>
-          <h1>Atlas privé</h1>
-        </div>
-        <p className="atlas-intro">Un fil de voyage entre capsules visuelles.</p>
-      </header>
+      <div className="capsule-heading city-heading">
+        <p>Carnet d’atmosphères</p>
+        <h1>Atlas privé</h1>
+      </div>
 
-      <section className="atlas-stage" aria-label="Parcours de voyage">
-        <div className="atlas-caption" aria-hidden="true">
-          <span>Europe &amp; Méditerranée</span>
-          <span>{String(cities.length).padStart(2, "0")} étapes</span>
-        </div>
+      {showHint && (
+        <p className="district-hint" role="status">
+          {isTouchDevice() ? "Touchez une ville pour y entrer" : "Cliquez sur une ville pour y entrer"}
+        </p>
+      )}
 
-        <svg
-          className="atlas-map"
-          viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-          preserveAspectRatio="none"
-          role="img"
-          aria-label={`Carte des parcours au départ de ${origin.name}`}
-        >
-          <defs>
-            <filter id="routeGlow" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="3.2" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fffaf0" stopOpacity="1" />
-              <stop offset="38%" stopColor="#c58a39" stopOpacity="0.62" />
-              <stop offset="100%" stopColor="#c58a39" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="revealGradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="black" />
-              <stop offset="55%" stopColor="black" stopOpacity="0.96" />
-              <stop offset="100%" stopColor="white" />
-            </radialGradient>
-            <mask id="visitedRevealMask" maskUnits="userSpaceOnUse" x="0" y="0" width={MAP_WIDTH} height={MAP_HEIGHT}>
-              <rect width={MAP_WIDTH} height={MAP_HEIGHT} fill="white" />
-              {visitedPoints.map(({ city, x, y }) => (
-                <circle className="atlas-reveal-hole" key={city.id} cx={x} cy={y} r="70" fill="url(#revealGradient)" />
-              ))}
-            </mask>
-          </defs>
-
-          <rect className="atlas-paper" width={MAP_WIDTH} height={MAP_HEIGHT} />
-          <image
-            className="atlas-earth"
-            href={atlasMapUrl}
-            width={MAP_WIDTH}
-            height={MAP_HEIGHT}
-            preserveAspectRatio="none"
-          />
-          <rect className="atlas-wash" width={MAP_WIDTH} height={MAP_HEIGHT} />
-          <rect className="atlas-fog" width={MAP_WIDTH} height={MAP_HEIGHT} mask="url(#visitedRevealMask)" />
-
-          {routePoints.map((point) => (
-            <g key={point.city.id}>
-              <path className="atlas-route-glow" d={arcPath(originPoint, point)} filter="url(#routeGlow)" />
-              <path className="atlas-route" d={arcPath(originPoint, point)} pathLength="1" />
-            </g>
-          ))}
-
-          {routePoints.map(({ city, x, y }) => (
-            <g className="atlas-node-group" key={city.id} transform={`translate(${x} ${y})`}>
-              <circle className="atlas-node-pulse" r="7.5" fill="url(#nodeGlow)" />
-              <circle className={city.id === activeCity.id ? "atlas-node is-active" : "atlas-node"} r="2.8" />
-            </g>
-          ))}
-        </svg>
-
-        <div className="atlas-node-buttons">
-          <div className="atlas-origin" style={percentPosition(originPoint)} aria-label={`Départ : ${origin.name}`}>
-            <span>{origin.name}</span>
-          </div>
-
-          {routePoints.map((point, index) => (
-            <button
-              className={`atlas-city atlas-city-${point.city.id}${point.city.id === activeCity.id ? " is-active" : ""}`}
-              key={point.city.id}
-              type="button"
-              style={percentPosition(point)}
-              onClick={() => setActiveCityId(point.city.id)}
-              aria-pressed={point.city.id === activeCity.id}
-              aria-label={`Sélectionner ${point.city.name}`}
-            >
-              <span className="atlas-city-index">{String(index + 1).padStart(2, "0")}</span>
-              <span className="atlas-city-name">{point.city.name}</span>
-            </button>
-          ))}
-        </div>
-
-        <aside className="atlas-card" key={activeCity.id} aria-live="polite">
-          {activeCity.capsuleImage && (
-            <img className="atlas-card-image" src={activeCity.capsuleImage} alt="" loading="lazy" decoding="async" />
-          )}
-          <div className="atlas-card-copy">
-            <span className="atlas-card-kicker">{activeCity.country}</span>
-            <h2>{activeCity.name}</h2>
-            <p>{activeCity.subtitle}</p>
-          </div>
-          <button
-            className="atlas-enter"
-            type="button"
-            disabled={!canOpen}
-            onClick={() => onSelectCity(activeCity.id)}
-          >
-            <span>{canOpen ? "Entrer" : "Bientôt"}</span>
-            <ArrowUpRight size={17} strokeWidth={1.7} />
-          </button>
-        </aside>
-      </section>
+      {/* Voile de transition (sert aussi d'écran de chargement) */}
+      <div className="scene-veil" style={{ "--veil-color": veil.color }} aria-hidden="true">
+        {veil.label && <span>{veil.label}</span>}
+      </div>
     </main>
   );
 }
