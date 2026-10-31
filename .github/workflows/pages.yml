@@ -1,5 +1,5 @@
 # Publication automatique sur GitHub Pages à chaque envoi sur la branche main.
-# Site statique uniquement : le plan partagé (API /api/places) n'est pas disponible ici.
+# Site statique ; les adresses partagées passent par le serveur Cloudflare (dossier api/).
 name: Publier sur GitHub Pages
 
 on:

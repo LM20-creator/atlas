@@ -45,6 +45,19 @@ exports/                ← images de référence produites avec le Camera Lab
 
 Dans `src/data/cities.js`, ajouter une entrée `status: "planned"` (nom, pays, sous-titre, coordonnées). Renseigner aussi `atlas: { x, y }` (position en % sur l'image d'accueil). Elle apparaît comme une lueur sous les nuages et dans les badges à débloquer. Pour l'ouvrir, passer `status: "visited"` et renseigner `capsuleImage` (vue générale 16:9), `theme`, `mapStyleUrl`, `districts` (peut être vide) ; `badgeImage` débloque le badge.
 
+## Adresses partagées du plan (Cloudflare)
+
+Le site reste sur GitHub Pages ; les adresses sont enregistrées par un petit serveur Cloudflare
+(dossier `api/` : `worker.js` + base D1 `atlas-prive-places`), en ligne sur
+https://atlas-prive-api.atlas-prive.workers.dev.
+
+- Lecture publique ; ajout avec le **code des proches** ; suppression (toucher un repère) avec le **code administrateur**.
+- Les codes sont des secrets Cloudflare. Pour en changer : copier le nouveau code (Cmd + C) puis
+  `bash api/set-code.sh ACCESS_CODE` (proches) ou `bash api/set-code.sh ADMIN_CODE` (administrateur).
+- Mettre à jour le serveur : `cd api && npx wrangler deploy` (compte Cloudflare de Léo, connexion `npx wrangler login --device`).
+- Origines autorisées (site GitHub Pages + version locale) : liste `ALLOWED_ORIGINS` dans `api/worker.js`.
+- `server/worker.js` est l'ancien serveur de l'hébergement OpenAI Sites, plus utilisé par le plan.
+
 ## Build et hébergement
 
 ```bash
