@@ -1,0 +1,12 @@
+# API des adresses partagées (Cloudflare Workers + D1). Voir worker.js.
+name = "atlas-prive-api"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+account_id = "8b1efff69d2c077d5519e81ed18e0e63"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "atlas-prive-places"
+database_id = "3b6dee6f-83cd-4590-af8d-9f3f5e03893d"
+migrations_dir = "../drizzle"

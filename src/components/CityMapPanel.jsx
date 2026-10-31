@@ -1,6 +1,7 @@
-import { MapPin, Search, X } from "lucide-react";
+import { KeyRound, MapPin, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getMapboxToken, loadMapbox, toMapboxStyleUrl } from "../lib/mapbox.js";
+import { checkCode, deletePlace, fetchPlaces, forgetAccess, readAccess, savePlace } from "../lib/placesApi.js";
 
 const CATEGORIES = [
   { id: "restaurant", label: "Restaurant", icon: "✦", color: "#c85b4b" },
@@ -17,15 +18,25 @@ function findCategory(id) {
   return CATEGORIES.find((item) => item.id === id) ?? CATEGORIES.at(-1);
 }
 
-function markerElement(place) {
+function markerElement(place, onClick) {
   const category = findCategory(place.category);
   const element = document.createElement("button");
   element.type = "button";
   element.className = "place-marker";
   element.style.setProperty("--place-color", category.color);
   element.setAttribute("aria-label", `${place.name} — ${category.label}`);
-  // TODO sécurité (chantier suivant) : place.name vient des visiteurs, ne pas l'injecter en HTML.
-  element.innerHTML = `<span>${category.icon}</span><b>${place.name}</b>`;
+  // Le nom vient des visiteurs : texte brut uniquement, jamais de HTML.
+  const icon = document.createElement("span");
+  icon.textContent = category.icon;
+  const label = document.createElement("b");
+  label.textContent = place.name;
+  element.append(icon, label);
+  if (onClick) {
+    element.addEventListener("click", (event) => {
+      event.stopPropagation();
+      onClick(place);
+    });
+  }
   return element;
 }
 
@@ -44,6 +55,9 @@ export default function CityMapPanel({ city, focus, onClose }) {
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState("");
   const [draft, setDraft] = useState(EMPTY_DRAFT);
+  const [access, setAccess] = useState(readAccess); // { code, role } ou null
+  const [codeInput, setCodeInput] = useState("");
+  const isAdmin = access?.role === "admin";
 
   // 1. Jeton Mapbox
   useEffect(() => {
@@ -92,30 +106,29 @@ export default function CityMapPanel({ city, focus, onClose }) {
     };
   }, [city, token]);
 
-  // 3. Adresses enregistrées
+  // 3. Adresses enregistrées (serveur Cloudflare, lecture publique)
   useEffect(() => {
-    fetch(`/api/places?city=${encodeURIComponent(city.id)}`)
-      .then((response) => {
-        if (!response.ok) throw new Error();
-        return response.json();
-      })
-      .then((result) => setPlaces(result.places ?? []))
-      .catch(() => {
-        if (!import.meta.env.DEV) setNotice("Les adresses enregistrées seront disponibles après la mise en ligne.");
-      });
+    let mounted = true;
+    fetchPlaces(city.id)
+      .then((list) => mounted && setPlaces(list))
+      .catch(() => mounted && setNotice("Les adresses enregistrées sont momentanément indisponibles."));
+    return () => {
+      mounted = false;
+    };
   }, [city.id]);
 
-  // 4. Marqueurs des adresses enregistrées
+  // 4. Marqueurs des adresses enregistrées (l'administrateur peut les supprimer d'un clic)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !window.mapboxgl) return;
     savedMarkersRef.current.forEach((marker) => marker.remove());
     savedMarkersRef.current = places.map((place) =>
-      new window.mapboxgl.Marker({ element: markerElement(place), anchor: "bottom" })
+      new window.mapboxgl.Marker({ element: markerElement(place, isAdmin ? removePlace : null), anchor: "bottom" })
         .setLngLat([place.lng, place.lat])
         .addTo(map)
     );
-  }, [places, mapReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [places, mapReady, isAdmin]);
 
   // 5. Marqueur du lieu en cours d'ajout
   useEffect(() => {
@@ -145,6 +158,12 @@ export default function CityMapPanel({ city, focus, onClose }) {
   }
 
   function startAdding() {
+    // Sans code mémorisé : on le demande d'abord.
+    if (!access) {
+      setMode("code");
+      setNotice("");
+      return;
+    }
     modeRef.current = "adding";
     setMode("adding");
     setNotice("");
@@ -156,6 +175,43 @@ export default function CityMapPanel({ city, focus, onClose }) {
     draftMarkerRef.current = null;
     modeRef.current = "browse";
     setMode("browse");
+  }
+
+  async function submitCode(event) {
+    event.preventDefault();
+    setIsSaving(true);
+    setNotice("");
+    try {
+      const granted = await checkCode(codeInput);
+      setAccess(granted);
+      setCodeInput("");
+      modeRef.current = "adding";
+      setMode("adding");
+      setDraft(EMPTY_DRAFT);
+      if (granted.role === "admin") setNotice("Mode administrateur : touchez un repère pour le supprimer.");
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function removePlace(place) {
+    if (!window.confirm(`Supprimer « ${place.name} » du plan ?`)) return;
+    try {
+      await deletePlace(place.id, access.code);
+      setPlaces((current) => current.filter((item) => item.id !== place.id));
+      setNotice("Adresse supprimée.");
+    } catch (error) {
+      setNotice(error.message);
+    }
+  }
+
+  function signOut() {
+    forgetAccess();
+    setAccess(null);
+    cancelAdding();
+    setNotice("Code oublié sur cet appareil.");
   }
 
   async function geocode(address) {
@@ -191,28 +247,24 @@ export default function CityMapPanel({ city, focus, onClose }) {
         setDraft(placeDraft);
       }
 
-      const response = await fetch("/api/places", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...placeDraft, city: city.id })
-      });
-      if (!response.ok) throw new Error();
-      const { place } = await response.json();
+      const place = await savePlace({ ...placeDraft, city: city.id }, access?.code);
       setPlaces((current) => [...current, place]);
       cancelAdding();
       setNotice("Adresse ajoutée à la carte.");
     } catch (error) {
-      // En local, il n'y a pas de serveur d'adresses : le lieu est ajouté temporairement (s'il a une position).
-      if (import.meta.env.DEV && placeDraft.lng !== null) {
-        setPlaces((current) => [...current, { id: `preview-${Date.now()}`, ...placeDraft }]);
+      if (error.status === 401) {
+        // Code changé entre-temps : on le redemande.
+        forgetAccess();
+        setAccess(null);
         cancelAdding();
-        setNotice("Adresse ajoutée pour cet aperçu. Elle ne sera pas conservée après actualisation.");
+        setMode("code");
+        setNotice("Le code d’accès a changé. Saisissez le nouveau code.");
       } else if (error.message === "missing-location") {
         setNotice("Saisissez une adresse ou placez le marqueur directement sur la carte.");
       } else if (error.message === "address-not-found") {
         setNotice("Adresse introuvable. Essayez une adresse plus complète ou placez le marqueur sur la carte.");
       } else {
-        setNotice("Impossible d’ajouter l’adresse pour le moment. Réessayez dans un instant.");
+        setNotice(error.message || "Impossible d’ajouter l’adresse pour le moment. Réessayez dans un instant.");
       }
     } finally {
       setIsSaving(false);
@@ -234,11 +286,46 @@ export default function CityMapPanel({ city, focus, onClose }) {
               <MapPin size={17} /> Ajouter une adresse
             </button>
           )}
+          {access && mode === "browse" && (
+            <button className="map-add-button map-signout" type="button" onClick={signOut} title="Oublier le code sur cet appareil">
+              <KeyRound size={15} /> {isAdmin ? "Admin" : "Connecté"}
+            </button>
+          )}
           <button className="city-map-close" type="button" onClick={onClose} aria-label="Fermer le plan">
             <X size={19} />
           </button>
         </div>
       </header>
+
+      {mode === "code" && (
+        <form className="place-form" onSubmit={submitCode}>
+          <div className="place-form-heading">
+            <div>
+              <span>Accès réservé</span>
+              <h3>Code d’accès</h3>
+            </div>
+            <button type="button" onClick={() => setMode("browse")}>
+              Annuler
+            </button>
+          </div>
+          <p>Saisissez le code qui vous a été transmis. Il sera mémorisé sur cet appareil.</p>
+          <label>
+            Code
+            <input
+              type="password"
+              value={codeInput}
+              onChange={(event) => setCodeInput(event.target.value)}
+              autoComplete="off"
+              maxLength="80"
+              required
+              autoFocus
+            />
+          </label>
+          <button className="place-submit" type="submit" disabled={isSaving || !codeInput.trim()}>
+            {isSaving ? "Vérification…" : "Valider"}
+          </button>
+        </form>
+      )}
 
       {mode === "adding" && (
         <form className="place-form" onSubmit={submit}>
