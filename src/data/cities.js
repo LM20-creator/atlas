@@ -23,6 +23,7 @@ import florenceOverview from "../assets/florence/overview.webp";
 import florenceUffizi from "../assets/florence/uffizi.webp";
 import florenceBadge from "../assets/badge-florence.webp";
 import dublinOverview from "../assets/dublin/overview.webp";
+import dublinBadge from "../assets/badge-dublin.webp";
 
 const MAPBOX_STYLE_URL = "https://api.mapbox.com/styles/v1/leomass/cmtcy1ssl002901s1c2vi29ab.html";
 
@@ -256,6 +257,7 @@ export const cities = [
     coordinates: { lat: 53.3498, lng: -6.2603 },
     // Vue générale stylisée (nuit, la Liffey vers la baie), aussi vignette sur l'accueil.
     capsuleImage: dublinOverview,
+    badgeImage: dublinBadge,
     mapStyleUrl: MAPBOX_STYLE_URL,
     mapZoom: 13.2,
     // Palette de la vue générale (nuit bleue, lumières dorées).
