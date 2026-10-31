@@ -24,6 +24,7 @@ import florenceUffizi from "../assets/florence/uffizi.webp";
 import florenceBadge from "../assets/badge-florence.webp";
 import dublinOverview from "../assets/dublin/overview.webp";
 import dublinBadge from "../assets/badge-dublin.webp";
+import dublinHowth from "../assets/dublin/howth.webp";
 
 const MAPBOX_STYLE_URL = "https://api.mapbox.com/styles/v1/leomass/cmtcy1ssl002901s1c2vi29ab.html";
 
@@ -270,8 +271,29 @@ export const cities = [
       stone: "#a08670",
       red: "#8a3a2a"
     },
-    // Quartiers à venir.
-    districts: []
+    // Quartiers visités (mêmes champs qu'Istanbul).
+    districts: [
+      {
+        id: "howth",
+        name: "Howth",
+        x: 24,
+        y: 6,
+        lngLat: [-6.0656, 53.3878],
+        mapZoom: 14,
+        image: dublinHowth,
+        veil: "#8fa9bf",
+        theme: {
+          ink: "#fffaf0",
+          muted: "#d3dbe2",
+          deep: "#2f4a5e",
+          water: "#2f5f86",
+          gold: "#f0c060",
+          stone: "#c8c2b4",
+          red: "#7d4f78"
+        },
+        history: ""
+      }
+    ]
   },
   {
     id: "barcelona",
