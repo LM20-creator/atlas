@@ -106,6 +106,7 @@ export default function AtlasHome({ onSelectCity, onOpenBadges, returningFrom })
         className="scene-city scene-atlas"
         style={zoomStyle}
         focusX={zoomOrigin?.x ?? startFocusX}
+        pointsY={visitedCities.map((city) => city.atlas.y)}
         onClick={() => setSelectedId(null)}
       >
         <CloudCover clearings={visitedCities.map((city) => city.atlas)} shape={atlasImage} />

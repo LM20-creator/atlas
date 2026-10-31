@@ -886,10 +886,11 @@ button {
   display: none;
 }
 
+/* --cover-shift : décalage vertical calculé par CoverScene pour garder les points visibles */
 .scene-city .scene-cover,
 .scene-district .scene-cover {
   left: 0;
-  transform: translateY(-50%);
+  transform: translateY(calc(-50% + var(--cover-shift, 0px)));
 }
 
 /* Transitions */
@@ -898,7 +899,7 @@ button {
 }
 
 .phase-zoom .scene-city .scene-cover {
-  transform: translateY(-50%) scale(2.4);
+  transform: translateY(calc(-50% + var(--cover-shift, 0px))) scale(2.4);
 }
 
 .phase-zoom .scene-city,
@@ -917,21 +918,21 @@ button {
 
 @keyframes scene-unzoom {
   from {
-    transform: translateY(-50%) scale(2.4);
+    transform: translateY(calc(-50% + var(--cover-shift, 0px))) scale(2.4);
   }
 
   to {
-    transform: translateY(-50%) scale(1);
+    transform: translateY(calc(-50% + var(--cover-shift, 0px))) scale(1);
   }
 }
 
 @keyframes scene-settle {
   from {
-    transform: translateY(-50%) scale(1.07);
+    transform: translateY(calc(-50% + var(--cover-shift, 0px))) scale(1.07);
   }
 
   to {
-    transform: translateY(-50%) scale(1);
+    transform: translateY(calc(-50% + var(--cover-shift, 0px))) scale(1);
   }
 }
 

@@ -173,6 +173,7 @@ export default function CityExplorer({ city, onBack, arriving = false }) {
           className="scene-city"
           style={zoomStyle}
           focusX={zoomOrigin?.x ?? districtsCenterX}
+          pointsY={districts.map((item) => item.y)}
           onClick={() => setSelectedId(null)}
         >
           {districts.map((item) => (
