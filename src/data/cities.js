@@ -279,7 +279,7 @@ export const cities = [
     name: "Barcelone",
     country: "Espagne",
     subtitle: "Modernisme, Méditerranée et quartiers vivants",
-    atlas: { x: 27.2, y: 70.7 },
+    atlas: { x: 25.1, y: 72 },
     coordinates: { lat: 41.3874, lng: 2.1686 }
   },
   {
