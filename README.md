@@ -23,12 +23,14 @@ Le jeton Mapbox est public (`pk.…`). Il faut le restreindre aux domaines du si
 
 ```
 src/
-  data/cities.js        ← SOURCE UNIQUE : villes, statut (visited / planned), images, repères, palette
+  data/cities.js        ← SOURCE UNIQUE : villes, statut (visited / planned), position sur l'accueil, images, quartiers, palette
   lib/mapbox.js         ← chargement de Mapbox GL, jeton, conversion des URL de style
+  lib/transitions.js    ← durées et outils des transitions zoom + voile
+  lib/clouds.js         ← nuages de l'accueil (générés dans le navigateur)
   components/
-    AtlasHome.jsx       ← accueil : carte des étapes au départ de Paris
-    CityCapsule.jsx     ← capsule d'une ville (image + repères + panneaux)
-    AtmosphereMap.jsx, MarkerLayer.jsx, InfoPanel.jsx
+    AtlasHome.jsx       ← accueil : l'Europe sous les nuages, éclaircies sur les villes visitées
+    CityExplorer.jsx    ← ville : vue générale → quartiers (voir docs/navigation-ville.md)
+    CoverScene.jsx, CloudCover.jsx
     CityMapPanel.jsx    ← plan Mapbox partagé (adresses)
     BadgeGallery.jsx    ← badges, générés depuis cities.js
     IstanbulCameraLab.jsx ← outil de dev
@@ -41,7 +43,7 @@ exports/                ← images de référence produites avec le Camera Lab
 
 ### Ajouter une ville
 
-Dans `src/data/cities.js`, ajouter une entrée `status: "planned"` (nom, pays, sous-titre, coordonnées). Elle apparaît automatiquement sur la carte et dans les badges à débloquer. Pour l'ouvrir, passer `status: "visited"` et renseigner `capsuleImage`, `badgeImage`, `theme`, `points`, `mapStyleUrl`.
+Dans `src/data/cities.js`, ajouter une entrée `status: "planned"` (nom, pays, sous-titre, coordonnées). Renseigner aussi `atlas: { x, y }` (position en % sur l'image d'accueil). Elle apparaît comme une lueur sous les nuages et dans les badges à débloquer. Pour l'ouvrir, passer `status: "visited"` et renseigner `capsuleImage` (vue générale 16:9), `theme`, `mapStyleUrl`, `districts` (peut être vide) ; `badgeImage` débloque le badge.
 
 ## Build et hébergement
 
