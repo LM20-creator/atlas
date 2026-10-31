@@ -24,13 +24,6 @@ import florenceOverview from "../assets/florence/overview.webp";
 import florenceUffizi from "../assets/florence/uffizi.webp";
 import florenceBadge from "../assets/badge-florence.webp";
 
-/** Point de départ de tous les trajets sur la carte d'accueil. */
-export const origin = {
-  id: "paris",
-  name: "Paris",
-  coordinates: { lat: 48.8566, lng: 2.3522 }
-};
-
 const MAPBOX_STYLE_URL = "https://api.mapbox.com/styles/v1/leomass/cmtcy1ssl002901s1c2vi29ab.html";
 
 export const cities = [
