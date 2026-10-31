@@ -126,7 +126,10 @@ export default function CityMapPanel({ city, focus, onClose }) {
       const element = document.createElement("div");
       element.className = "place-marker place-marker-draft";
       element.innerHTML = "<span>+</span>";
-      draftMarkerRef.current = new window.mapboxgl.Marker({ element, draggable: true, anchor: "bottom" }).addTo(map);
+      // La position doit être donnée AVANT addTo, sinon Mapbox plante (page blanche).
+      draftMarkerRef.current = new window.mapboxgl.Marker({ element, draggable: true, anchor: "bottom" })
+        .setLngLat([draft.lng, draft.lat])
+        .addTo(map);
       draftMarkerRef.current.on("dragend", () => {
         const position = draftMarkerRef.current.getLngLat();
         setDraft((current) => ({ ...current, lng: position.lng, lat: position.lat }));
